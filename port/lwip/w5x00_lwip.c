@@ -11,6 +11,8 @@
  */
 #include <stdio.h>
 
+#include <string.h>
+
 #include "w5x00_lwip.h"
 
 #include "socket.h"

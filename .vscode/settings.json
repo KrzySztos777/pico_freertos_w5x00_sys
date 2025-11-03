@@ -1,0 +1,26 @@
+{
+    "files.associations": {
+      "uni_stdio.h": "c",
+      "cstdlib": "c",
+      "usb_descriptors.h": "c",
+      "uni_usb.h": "c",
+      "tcp.h": "c",
+      "uni_eth.h": "c",
+      "ip_addr.h": "c",
+      "tcp_callbacks.h": "c",
+      "ssl.h": "c",
+      "net_sockets.h": "c",
+      "w5x00_lwip.h": "c",
+      "task_tester.h": "c",
+      "stats.h": "c",
+      "clocks.h": "c",
+      "ethernet.h": "c"
+    },
+
+    "cmake.configureSettings": {
+      "PICO_BOARD": "pico2",          
+      "PICO_PLATFORM": "rp2350" 
+    },
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+
+}

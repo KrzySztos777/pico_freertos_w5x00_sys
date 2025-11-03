@@ -1,0 +1,44 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Configure Project (build)",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        //debug options
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DPICO_DEOPTIMIZED_DEBUG=1",
+
+        "-DCMAKE_C_COMPILER=/usr/bin/arm-none-eabi-gcc",
+        "-DCMAKE_CXX_COMPILER=/usr/bin/arm-none-eabi-g++",
+        "-DPICO_PLATFORM=rp2350",
+        "-DPICO_BOARD=pico2",
+        ".."
+      ],
+      "options": { "cwd": "${workspaceFolder}/build" },
+      "problemMatcher": ["$gcc"],
+      "group": { "kind": "build", "isDefault": false },
+      "detail": "Configure with CMake into ./build"
+    },
+    {
+      "label": "Build (cmake --build)",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "build", "--parallel"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": [],
+      "dependsOn": "Configure (CMake)"
+    },
+    {
+      "label": "Clean Project (build)",
+      "type": "shell",
+      "command": "rm",
+      "args": ["-rf", "*"],
+      "options": { "cwd": "${workspaceFolder}/build" },
+      "group": "build",
+      "detail": "Clean ./build"
+    }
+  ]
+}

@@ -44,8 +44,12 @@ endif()
 
 # Pull in SDK (must be before project)
 if(NOT DEFINED PICO_SDK_PATH)
-    set(PICO_SDK_PATH ${CMAKE_SOURCE_DIR}/libraries/pico-sdk)
-    message(STATUS "PICO_SDK_PATH = ${PICO_SDK_PATH}")
+    if(DEFINED ENV{PICO_SDK_PATH})
+        set(PICO_SDK_PATH $ENV{PICO_SDK_PATH})
+        message(STATUS "Using PICO_SDK_PATH from environment: ${PICO_SDK_PATH}")
+    else()
+        message(FATAL_ERROR "PICO_SDK_PATH not set! Please set it in environment or pass -DPICO_SDK_PATH=<path> to cmake.")
+    endif()
 endif()
 
 include(pico_sdk_import.cmake)
@@ -67,7 +71,7 @@ pico_sdk_init()
 # the tests folder is included directly by a parent project, without including
 # the top level CMakeLists.txt.
 if(NOT DEFINED WIZNET_DIR)
-    set(WIZNET_DIR ${CMAKE_SOURCE_DIR}/libraries/ioLibrary_Driver)
+    set(WIZNET_DIR ${CMAKE_SOURCE_DIR}/lib/ioLibrary_Driver)
     message(STATUS "WIZNET_DIR = ${WIZNET_DIR}")
 endif()
 
@@ -80,7 +84,7 @@ endif()
 add_subdirectory(examples)
 
 # Add libraries in subdirectories
-add_subdirectory(${CMAKE_SOURCE_DIR}/libraries)
+add_subdirectory(${CMAKE_SOURCE_DIR}/lib)
 add_subdirectory(${PORT_DIR})
 
 # Set compile options
