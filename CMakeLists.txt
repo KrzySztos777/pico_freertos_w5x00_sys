@@ -56,7 +56,7 @@ include(pico_sdk_import.cmake)
 include(wiznet_pico_lwip_c_sdk_version.cmake)
 
 # Set project name
-set(PROJECT_NAME WIZnet-PICO-LWIP-C)
+set(PROJECT_NAME pico_freertos_w5x00_sys)
 
 # Set project informations
 project(${PROJECT_NAME} C CXX ASM)
