@@ -71,20 +71,22 @@ pico_sdk_init()
 # the tests folder is included directly by a parent project, without including
 # the top level CMakeLists.txt.
 if(NOT DEFINED WIZNET_DIR)
-    set(WIZNET_DIR ${CMAKE_SOURCE_DIR}/lib/ioLibrary_Driver)
+    set(WIZNET_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/ioLibrary_Driver)
     message(STATUS "WIZNET_DIR = ${WIZNET_DIR}")
 endif()
 
 if(NOT DEFINED PORT_DIR)
-    set(PORT_DIR ${CMAKE_SOURCE_DIR}/port)
+    set(PORT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/port)
     message(STATUS "PORT_DIR = ${PORT_DIR}")
 endif()
 
 # Hardware-specific examples in subdirectories:
-add_subdirectory(examples)
+if(PROJECT_IS_TOP_LEVEL)
+    add_subdirectory(examples)
+endif()
 
 # Add libraries in subdirectories
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 add_subdirectory(${PORT_DIR})
 
 # Set compile options
