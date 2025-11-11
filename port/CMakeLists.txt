@@ -1,6 +1,31 @@
 # ioLibrary_Driver
 add_library(IOLIBRARY_FILES STATIC)
 
+if(${BOARD_NAME} STREQUAL WIZnet_Ethernet_HAT)
+    #set(PICO_PLATFORM rp2350) #If you are using WIZnet_ethernet_HAT with Pico2, uncomment it.
+    target_compile_definitions(IOLIBRARY_FILES PUBLIC _=W5100S)
+    target_compile_definitions(IOLIBRARY_FILES PUBLIC DEVICE_BOARD_NAME=WIZnet_Ethernet_HAT)
+elseif(${BOARD_NAME} STREQUAL W5100S_EVB_PICO)
+    target_compile_definitions(IOLIBRARY_FILES PUBLIC _=W5100S)
+    target_compile_definitions(IOLIBRARY_FILES PUBLIC DEVICE_BOARD_NAME=W5100S_EVB_PICO)
+elseif(${BOARD_NAME} STREQUAL W5500_EVB_PICO)
+    target_compile_definitions(IOLIBRARY_FILES PUBLIC _WIZCHIP_=W5500)
+    target_compile_definitions(IOLIBRARY_FILES PUBLIC DEVICE_BOARD_NAME=W5500_EVB_PICO)
+ 
+elseif(${BOARD_NAME} STREQUAL W55RP20_EVB_PICO)
+    target_compile_definitions(IOLIBRARY_FILES PUBLIC _=W5500)
+    target_compile_definitions(IOLIBRARY_FILES PUBLIC DEVICE_BOARD_NAME=W55RP20_EVB_PICO)
+ 
+elseif(${BOARD_NAME} STREQUAL W5100S_EVB_PICO2)
+    target_compile_definitions(IOLIBRARY_FILES PUBLIC _=W5100S)
+    target_compile_definitions(IOLIBRARY_FILES PUBLIC DEVICE_BOARD_NAME=W5100S_EVB_PICO2)
+elseif(${BOARD_NAME} STREQUAL W5500_EVB_PICO2)
+    target_compile_definitions(IOLIBRARY_FILES PUBLIC _=W5500)
+    target_compile_definitions(IOLIBRARY_FILES PUBLIC DEVICE_BOARD_NAME=W5500_EVB_PICO2)
+else() 
+    message(FATAL_ERROR "BOARD_NAME is wrong = ${BOARD_NAME}")
+endif()
+
 target_sources(IOLIBRARY_FILES PUBLIC
         ${PORT_DIR}/ioLibrary_Driver/src/w5x00_spi.c
         ${PORT_DIR}/ioLibrary_Driver/src/w5x00_gpio_irq.c

@@ -1,43 +1,23 @@
 # CMake minimum required version
 cmake_minimum_required(VERSION 3.12)
-
-# Set board
-#set(BOARD_NAME WIZnet_Ethernet_HAT)
-#set(BOARD_NAME W5100S_EVB_PICO)
-set(BOARD_NAME W5500_EVB_PICO)
-#set(BOARD_NAME W55RP20_EVB_PICO)
-#set(BOARD_NAME W5100S_EVB_PICO2)
-#set(BOARD_NAME W5500_EVB_PICO2)
  
 if(${BOARD_NAME} STREQUAL WIZnet_Ethernet_HAT)
     #set(PICO_PLATFORM rp2350) #If you are using WIZnet_ethernet_HAT with Pico2, uncomment it.
     set(WIZNET_CHIP W5100S)
-    add_definitions(-D_WIZCHIP_=W5100S)
-    add_definitions(-DDEVICE_BOARD_NAME=WIZnet_Ethernet_HAT)
 elseif(${BOARD_NAME} STREQUAL W5100S_EVB_PICO)
     set(WIZNET_CHIP W5100S)
-    add_definitions(-D_WIZCHIP_=W5100S)
-    add_definitions(-DDEVICE_BOARD_NAME=W5100S_EVB_PICO)
 elseif(${BOARD_NAME} STREQUAL W5500_EVB_PICO)
     set(WIZNET_CHIP W5500)
-    add_definitions(-D_WIZCHIP_=W5500)
-    add_definitions(-DDEVICE_BOARD_NAME=W5500_EVB_PICO)
  
 elseif(${BOARD_NAME} STREQUAL W55RP20_EVB_PICO)
     set(WIZNET_CHIP W5500)
-    add_definitions(-D_WIZCHIP_=W5500)
-    add_definitions(-DDEVICE_BOARD_NAME=W55RP20_EVB_PICO)
  
 elseif(${BOARD_NAME} STREQUAL W5100S_EVB_PICO2)
     set(PICO_PLATFORM rp2350)
     set(WIZNET_CHIP W5100S)
-    add_definitions(-D_WIZCHIP_=W5100S)
-    add_definitions(-DDEVICE_BOARD_NAME=W5100S_EVB_PICO2)
 elseif(${BOARD_NAME} STREQUAL W5500_EVB_PICO2)
     set(PICO_PLATFORM rp2350)
     set(WIZNET_CHIP W5500)
-    add_definitions(-D_WIZCHIP_=W5500)
-    add_definitions(-DDEVICE_BOARD_NAME=W5500_EVB_PICO2)
 else() 
     message(FATAL_ERROR "BOARD_NAME is wrong = ${BOARD_NAME}")
 endif()
@@ -55,17 +35,17 @@ endif()
 include(pico_sdk_import.cmake)
 include(wiznet_pico_lwip_c_sdk_version.cmake)
 
-# Set project name
-set(PROJECT_NAME pico_freertos_w5x00_sys)
-
-# Set project informations
-project(${PROJECT_NAME} C CXX ASM)
+# Set project name and informations
+project(pico_freertos_w5x00_sys C CXX ASM)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
 # Initialize the SDK
 pico_sdk_init()
+
+# Add it as a library
+add_library(${PROJECT_NAME} INTERFACE)
 
 # Set the project root directory if it's not already defined, as may happen if
 # the tests folder is included directly by a parent project, without including
@@ -82,7 +62,7 @@ endif()
 
 # Hardware-specific examples in subdirectories:
 if(PROJECT_IS_TOP_LEVEL)
-    add_subdirectory(examples)
+    # add_subdirectory(examples)
 endif()
 
 # Add libraries in subdirectories
