@@ -1,3 +1,6 @@
+# for include outside's lwipopts
+include_directories(${CMAKE_SOURCE_DIR})
+
 # ioLibrary_Driver
 add_library(IOLIBRARY_FILES STATIC)
 
