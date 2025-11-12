@@ -355,9 +355,9 @@ static void wizchip_spi_pio_reset(wiznet_spi_handle_t handle) {
     spi_pio_state_t *state = (spi_pio_state_t *)handle;
     gpio_set_dir(state->spi_config->reset_pin, GPIO_OUT);
     gpio_put(state->spi_config->reset_pin, 0);
-    sleep_ms(100);
+    W5X00_SLEEP_MS(100);
     gpio_put(state->spi_config->reset_pin, 1);
-    sleep_ms(100);
+    W5X00_SLEEP_MS(100);
 }
 
 static wiznet_spi_funcs_t *get_wiznet_spi_pio_impl(void) {

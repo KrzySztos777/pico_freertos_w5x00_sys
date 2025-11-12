@@ -7,6 +7,13 @@
 #ifndef _PORT_COMMON_H_
 #define _PORT_COMMON_H_
 
+
+/* Porting defines from bare-metal to FreeRTOS */
+#include "FreeRTOS.h"
+#include "task.h"
+
+#define W5X00_SLEEP_MS(ms)      vTaskDelay(pdMS_TO_TICKS(ms))
+#define W5X00_PRINTF            printf//NULL
 /**
  * ----------------------------------------------------------------------------------------------------
  * Includes
