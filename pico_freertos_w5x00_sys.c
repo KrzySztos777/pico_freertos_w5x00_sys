@@ -71,11 +71,14 @@ static void set_clock_khz(void);
  * Main
  * ----------------------------------------------------------------------------------------------------
  */
+
+uint8_t pack[ETHERNET_MTU];
+
 void w5x00_dhcp_dns_test_nosys_test()
 {
     /* Initialize */
     int8_t retval = 0;
-    uint8_t *pack = malloc(ETHERNET_MTU);
+    // uint8_t *pack = malloc(ETHERNET_MTU);
     uint16_t pack_len = 0;
     struct pbuf *p = NULL;
 
@@ -139,9 +142,9 @@ void w5x00_dhcp_dns_test_nosys_test()
             {
                 p = pbuf_alloc(PBUF_RAW, pack_len, PBUF_POOL);
                 pbuf_take(p, pack, pack_len);
-                free(pack);
+                // free(pack);
 
-                pack = malloc(ETHERNET_MTU);
+                // pack = malloc(ETHERNET_MTU);
             }
             else
             {
