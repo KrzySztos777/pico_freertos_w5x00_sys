@@ -27,6 +27,9 @@
 #include "lwip/dhcp.h"
 #include "lwip/dns.h"
 
+//NO_SYS=0
+#include "lwip/tcpip.h"
+
 /**
  * ----------------------------------------------------------------------------------------------------
  * Macros
@@ -100,28 +103,43 @@ void w5x00_dhcp_dns_test_nosys_test()
     setSHAR(mac);
     ctlwizchip(CW_RESET_PHY, 0);
 
-    // Initialize LWIP in NO_SYS mode
-    lwip_init();
+    // // Initialize LWIP in NO_SYS mode
+    // lwip_init();
 
-    netif_add(&g_netif, IP4_ADDR_ANY, IP4_ADDR_ANY, IP4_ADDR_ANY, NULL, netif_initialize, netif_input);
-    g_netif.name[0] = 'e';
-    g_netif.name[1] = '0';
+    // netif_add(&g_netif, IP4_ADDR_ANY, IP4_ADDR_ANY, IP4_ADDR_ANY, NULL, netif_initialize, netif_input);
+    // g_netif.name[0] = 'e';
+    // g_netif.name[1] = '0';
 
-    // Assign callbacks for link and status
+    // // Assign callbacks for link and status
+    // netif_set_link_callback(&g_netif, netif_link_callback);
+    // netif_set_status_callback(&g_netif, netif_status_callback);
+
+    // // MACRAW socket open
+    // retval = socket(SOCKET_MACRAW, Sn_MR_MACRAW, PORT_LWIPERF, 0x00);
+
+    // if (retval < 0)
+    // {
+    //     W5X00_PRINTF(" MACRAW socket open failed\n");
+    // }
+
+    // // Set the default interface and bring it up
+    // netif_set_default(&g_netif);
+    // netif_set_link_up(&g_netif);
+    // netif_set_up(&g_netif);
+
+    // Uruchamia wątek tcpip_thread()
+    tcpip_init(NULL, NULL);
+
+    // Inicjalizacja interfejsu sieciowego (Twojego W5x00)
+    ip4_addr_t ipaddr, netmask, gw;
+    IP4_ADDR(&ipaddr, 192,168,0,40);
+    IP4_ADDR(&netmask, 255,255,255,0);
+    IP4_ADDR(&gw, 192,168,0,1);
+
+    netif_add(&g_netif, &ipaddr, &netmask, &gw, NULL, NULL/*wizchip_netif_init*/, tcpip_input);
+    netif_set_default(&g_netif);
     netif_set_link_callback(&g_netif, netif_link_callback);
     netif_set_status_callback(&g_netif, netif_status_callback);
-
-    // MACRAW socket open
-    retval = socket(SOCKET_MACRAW, Sn_MR_MACRAW, PORT_LWIPERF, 0x00);
-
-    if (retval < 0)
-    {
-        W5X00_PRINTF(" MACRAW socket open failed\n");
-    }
-
-    // Set the default interface and bring it up
-    netif_set_default(&g_netif);
-    netif_set_link_up(&g_netif);
     netif_set_up(&g_netif);
 
     // Start DHCP configuration for an interface
@@ -132,35 +150,50 @@ void w5x00_dhcp_dns_test_nosys_test()
     /* Infinite loop */
     while (1)
     {
+        // getsockopt(SOCKET_MACRAW, SO_RECVBUF, &pack_len);
+
+        // if (pack_len > 0)
+        // {
+        //     pack_len = recv_lwip(SOCKET_MACRAW, (uint8_t *)pack, pack_len);
+
+        //     if (pack_len)
+        //     {
+        //         p = pbuf_alloc(PBUF_RAW, pack_len, PBUF_POOL);
+        //         pbuf_take(p, pack, pack_len);
+        //         // free(pack);
+
+        //         // pack = malloc(ETHERNET_MTU);
+        //     }
+        //     else
+        //     {
+        //         W5X00_PRINTF(" No packet received\n");
+        //     }
+
+        //     if (pack_len && p != NULL)
+        //     {
+        //         LINK_STATS_INC(link.recv);
+
+        //         if (g_netif.input(p, &g_netif) != ERR_OK)
+        //         {
+        //             pbuf_free(p);
+        //         }
+        //     }
+        // }
+
         getsockopt(SOCKET_MACRAW, SO_RECVBUF, &pack_len);
-
-        if (pack_len > 0)
-        {
-            pack_len = recv_lwip(SOCKET_MACRAW, (uint8_t *)pack, pack_len);
-
-            if (pack_len)
-            {
+        if (pack_len > 0) {
+            pack_len = recv_lwip(SOCKET_MACRAW, pack, pack_len);
+            if (pack_len > 0) {
                 p = pbuf_alloc(PBUF_RAW, pack_len, PBUF_POOL);
-                pbuf_take(p, pack, pack_len);
-                // free(pack);
-
-                // pack = malloc(ETHERNET_MTU);
-            }
-            else
-            {
-                W5X00_PRINTF(" No packet received\n");
-            }
-
-            if (pack_len && p != NULL)
-            {
-                LINK_STATS_INC(link.recv);
-
-                if (g_netif.input(p, &g_netif) != ERR_OK)
-                {
-                    pbuf_free(p);
+                if (p != NULL) {
+                    pbuf_take(p, pack, pack_len);
+                    if (tcpip_input(p, &g_netif) != ERR_OK) {
+                        pbuf_free(p);
+                    }
                 }
             }
         }
+        vTaskDelay(pdMS_TO_TICKS(1)); // minimalne odciążenie CPU
 
         if ((dns_gethostbyname(g_dns_target_domain, &g_resolved, NULL, NULL) == ERR_OK) && (g_dns_get_ip_flag == 0))
         {
@@ -174,7 +207,7 @@ void w5x00_dhcp_dns_test_nosys_test()
         }
 
         /* Cyclic lwIP timers check */
-        sys_check_timeouts();
+        // sys_check_timeouts();
     }
 }
 

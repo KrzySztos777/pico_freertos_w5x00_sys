@@ -74,7 +74,9 @@ target_link_libraries(LWIP_FILES PUBLIC
         ETHERNET_FILES
         pico_stdlib
         pico_lwip
-        pico_lwip_nosys
+        # pico_lwip_nosys
+        pico_lwip_freertos 
+        FreeRTOS-Kernel
         )
 
 # timer
