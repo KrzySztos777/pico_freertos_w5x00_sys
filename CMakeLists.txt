@@ -79,7 +79,7 @@ target_include_directories(pico_freertos_w5x00_sys INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 target_link_libraries(pico_freertos_w5x00_sys INTERFACE
-    FreeRTOS-Kernel
+    FreeRTOS-Kernel-Heap4
     IOLIBRARY_FILES 
     LWIP_FILES
     TIMER_FILES

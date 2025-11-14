@@ -75,7 +75,7 @@ static void set_clock_khz(void);
  * ----------------------------------------------------------------------------------------------------
  */
 
-uint8_t pack[ETHERNET_MTU];
+uint8_t pack[ETHERNET_MTU+50];//50 is margin
 
 void w5x00_dhcp_dns_test_nosys_test()
 {
@@ -128,6 +128,9 @@ void w5x00_dhcp_dns_test_nosys_test()
     // netif_set_up(&g_netif);
 
     // Uruchamia wątek tcpip_thread()
+    W5X00_PRINTF("tcpip_init goes...\n");
+    vTaskDelay(pdMS_TO_TICKS(1500));
+
     tcpip_init(NULL, NULL);
 
     // Inicjalizacja interfejsu sieciowego (Twojego W5x00)
@@ -136,7 +139,12 @@ void w5x00_dhcp_dns_test_nosys_test()
     IP4_ADDR(&netmask, 255,255,255,0);
     IP4_ADDR(&gw, 192,168,0,1);
 
-    netif_add(&g_netif, &ipaddr, &netmask, &gw, NULL, NULL/*wizchip_netif_init*/, tcpip_input);
+    W5X00_PRINTF("Start adding netif...\n");
+    vTaskDelay(pdMS_TO_TICKS(1500));
+
+    netif_add(&g_netif, &ipaddr, &netmask, &gw, NULL, netif_initialize/*wizchip_netif_init*/, tcpip_input);
+    g_netif.name[0] = 'e';
+    g_netif.name[1] = '0';
     netif_set_default(&g_netif);
     netif_set_link_callback(&g_netif, netif_link_callback);
     netif_set_status_callback(&g_netif, netif_status_callback);
@@ -146,6 +154,10 @@ void w5x00_dhcp_dns_test_nosys_test()
     dhcp_start(&g_netif);
 
     dns_init();
+
+    W5X00_PRINTF("W5x00 init completed!\n");
+    vTaskDelay(pdMS_TO_TICKS(1500));
+
 
     /* Infinite loop */
     while (1)
@@ -195,16 +207,16 @@ void w5x00_dhcp_dns_test_nosys_test()
         }
         vTaskDelay(pdMS_TO_TICKS(1)); // minimalne odciążenie CPU
 
-        if ((dns_gethostbyname(g_dns_target_domain, &g_resolved, NULL, NULL) == ERR_OK) && (g_dns_get_ip_flag == 0))
-        {
-            g_ip = g_resolved.addr;
+        // if ((dns_gethostbyname(g_dns_target_domain, &g_resolved, NULL, NULL) == ERR_OK) && (g_dns_get_ip_flag == 0))
+        // {
+        //     g_ip = g_resolved.addr;
 
-            W5X00_PRINTF(" DNS success\n");
-            W5X00_PRINTF(" Target domain : %s\n", g_dns_target_domain);
-            W5X00_PRINTF(" IP of target domain : [%03d.%03d.%03d.%03d]\n", g_ip & 0xFF, (g_ip >> 8) & 0xFF, (g_ip >> 16) & 0xFF, (g_ip >> 24) & 0xFF);
+        //     W5X00_PRINTF(" DNS success\n");
+        //     W5X00_PRINTF(" Target domain : %s\n", g_dns_target_domain);
+        //     W5X00_PRINTF(" IP of target domain : [%03d.%03d.%03d.%03d]\n", g_ip & 0xFF, (g_ip >> 8) & 0xFF, (g_ip >> 16) & 0xFF, (g_ip >> 24) & 0xFF);
 
-            g_dns_get_ip_flag = 1;
-        }
+        //     g_dns_get_ip_flag = 1;
+        // }
 
         /* Cyclic lwIP timers check */
         // sys_check_timeouts();

@@ -54,7 +54,7 @@ target_link_libraries(IOLIBRARY_FILES PUBLIC
         hardware_spi
         hardware_dma
         hardware_clocks
-        FreeRTOS-Kernel
+        FreeRTOS-Kernel-Heap4
         )
 
 # lwip
@@ -76,7 +76,7 @@ target_link_libraries(LWIP_FILES PUBLIC
         pico_lwip
         # pico_lwip_nosys
         pico_lwip_freertos 
-        FreeRTOS-Kernel
+        FreeRTOS-Kernel-Heap4
         )
 
 # timer
