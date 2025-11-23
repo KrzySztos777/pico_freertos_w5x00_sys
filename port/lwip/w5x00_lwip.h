@@ -77,25 +77,7 @@ err_t netif_output(struct netif *netif, struct pbuf *p);
  *
  *  \param netif a pre-allocated netif structure
  */
-void netif_link_callback(struct netif *netif);
 
-/*! \brief callback function
- *  \ingroup w5x00_lwip
- *
- *   Callback function for status.
- *
- *   \param netif a pre-allocated netif structure
- */
-void netif_status_callback(struct netif *netif);
-
-/*! \brief callback function
- *  \ingroup w5x00_lwip
- *
- *  Callback function that initializes the interface.
- *
- *  \param netif a pre-allocated netif structure
- *  \return ERR_OK if Network interface initialized
- */
 err_t netif_initialize(struct netif *netif);
 
 /*! \brief ethernet frame cyclic redundancy check

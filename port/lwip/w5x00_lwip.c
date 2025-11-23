@@ -141,16 +141,6 @@ err_t netif_output(struct netif *netif, struct pbuf *p)
     return ERR_OK;
 }
 
-void netif_link_callback(struct netif *netif)
-{
-    printf("netif link status changed %s\n", netif_is_link_up(netif) ? "up" : "down");
-}
-
-void netif_status_callback(struct netif *netif)
-{
-    printf("netif status changed %s\n", ip4addr_ntoa(netif_ip4_addr(netif)));
-}
-
 err_t netif_initialize(struct netif *netif)
 {
     netif->linkoutput = netif_output;
