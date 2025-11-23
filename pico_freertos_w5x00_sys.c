@@ -77,6 +77,17 @@ static void set_clock_khz(void);
 
 uint8_t pack[ETHERNET_MTU+50];//50 is margin
 
+
+void netif_link_callback(struct netif *netif)
+{
+    W5X00_PRINTF("netif link status changed %s\n", netif_is_link_up(netif) ? "up" : "down");
+}
+
+void netif_status_callback(struct netif *netif)
+{
+    W5X00_PRINTF("netif status changed %s\n", ip4addr_ntoa(netif_ip4_addr(netif)));
+}
+
 void w5x00_dhcp_dns_test_nosys_test()
 {
     /* Initialize */
@@ -114,13 +125,7 @@ void w5x00_dhcp_dns_test_nosys_test()
     // netif_set_link_callback(&g_netif, netif_link_callback);
     // netif_set_status_callback(&g_netif, netif_status_callback);
 
-    // // MACRAW socket open
-    // retval = socket(SOCKET_MACRAW, Sn_MR_MACRAW, PORT_LWIPERF, 0x00);
 
-    // if (retval < 0)
-    // {
-    //     W5X00_PRINTF(" MACRAW socket open failed\n");
-    // }
 
     // // Set the default interface and bring it up
     // netif_set_default(&g_netif);
@@ -128,14 +133,21 @@ void w5x00_dhcp_dns_test_nosys_test()
     // netif_set_up(&g_netif);
 
     // Uruchamia wątek tcpip_thread()
-    W5X00_PRINTF("tcpip_init goes...\n");
+    char *test;
+    if((test=pvPortMalloc(1024))!=NULL)
+        W5X00_PRINTF("tcpip_init goes...\n");
+    else
+        while(1){
+            W5X00_PRINTF("CHUJNIA\n");
+            vTaskDelay(pdMS_TO_TICKS(1500));
+        }
     vTaskDelay(pdMS_TO_TICKS(1500));
-
+    
     tcpip_init(NULL, NULL);
-
+vTaskDelay(pdMS_TO_TICKS(1500));
     // Inicjalizacja interfejsu sieciowego (Twojego W5x00)
     ip4_addr_t ipaddr, netmask, gw;
-    IP4_ADDR(&ipaddr, 192,168,0,40);
+    IP4_ADDR(&ipaddr, 192,168,0,41);
     IP4_ADDR(&netmask, 255,255,255,0);
     IP4_ADDR(&gw, 192,168,0,1);
 
@@ -145,66 +157,133 @@ void w5x00_dhcp_dns_test_nosys_test()
     netif_add(&g_netif, &ipaddr, &netmask, &gw, NULL, netif_initialize/*wizchip_netif_init*/, tcpip_input);
     g_netif.name[0] = 'e';
     g_netif.name[1] = '0';
+    
     netif_set_default(&g_netif);
-    netif_set_link_callback(&g_netif, netif_link_callback);
-    netif_set_status_callback(&g_netif, netif_status_callback);
+    // MACRAW socket open
+    retval = socket(SOCKET_MACRAW, Sn_MR_MACRAW, PORT_LWIPERF, 0x00);
+
+    if (retval < 0)
+    {
+        W5X00_PRINTF(" MACRAW socket open failed\n");
+    }
+
+
+    etharp_gratuitous(&g_netif);
+    // tcpip_callback((tcpip_callbwack_fn)netif_set_link_up, &g_netif);
+    tcpip_callback(netif_link_callback, &g_netif);
+
+
+    W5X00_PRINTF("TRY netif_set_link_up\n");
+    netif_set_link_up(&g_netif);
+    W5X00_PRINTF("TRY netif_set_up\n");
     netif_set_up(&g_netif);
+    W5X00_PRINTF("EVERYTHING UP\n");
 
     // Start DHCP configuration for an interface
-    dhcp_start(&g_netif);
+    // dhcp_start(&g_netif);
 
     dns_init();
 
     W5X00_PRINTF("W5x00 init completed!\n");
     vTaskDelay(pdMS_TO_TICKS(1500));
-
+    uint8_t getmac[6]={1,2,1,2,1,2};
+    getSHAR(&getmac);
+    W5X00_PRINTF("getmac %02X:%02X:%02X:%02X:%02X:%02X\n",getmac[0],getmac[1],getmac[2],getmac[3],getmac[4],getmac[5]);
+    W5X00_PRINTF("hwaddr %02X:%02X:%02X:%02X:%02X:%02X\n",(g_netif.hwaddr)[0],(g_netif.hwaddr)[1],(g_netif.hwaddr)[2],(g_netif.hwaddr)[3],(g_netif.hwaddr)[4],(g_netif.hwaddr)[5]);
 
     /* Infinite loop */
     while (1)
     {
-        // getsockopt(SOCKET_MACRAW, SO_RECVBUF, &pack_len);
+    //     getsockopt(SOCKET_MACRAW, SO_RECVBUF, &pack_len);
 
-        // if (pack_len > 0)
-        // {
-        //     pack_len = recv_lwip(SOCKET_MACRAW, (uint8_t *)pack, pack_len);
+    // if (pack_len > 0)
+    // {
+    //     pack_len = recv_lwip(SOCKET_MACRAW, (uint8_t *)pack, pack_len);
 
-        //     if (pack_len)
-        //     {
-        //         p = pbuf_alloc(PBUF_RAW, pack_len, PBUF_POOL);
-        //         pbuf_take(p, pack, pack_len);
-        //         // free(pack);
+    //     if (pack_len > 0)
+    //     {
+    //         W5X00_PRINTF("STH CAME (%d bytes)\n", pack_len);
 
-        //         // pack = malloc(ETHERNET_MTU);
-        //     }
-        //     else
-        //     {
-        //         W5X00_PRINTF(" No packet received\n");
-        //     }
+    //         // KLUCZOWA ZMIANA: PBUF_REF zamiast PBUF_POOL + pbuf_take
+    //         p = pbuf_alloc(PBUF_RAW, pack_len, PBUF_POOL);
+    //         if (p != NULL)
+    //         {
+    //             p->payload = pack;           // <-- wskazujemy bezpośrednio na bufor W5500
+    //             LINK_STATS_INC(link.recv);
 
-        //     if (pack_len && p != NULL)
-        //     {
-        //         LINK_STATS_INC(link.recv);
+    //             // Wysyłamy do stosu lwIP
+    //             if (tcpip_input(p, &g_netif) != ERR_OK)
+    //             {
+    //                 pbuf_free(p);
+    //             }
+    //             // UWAGA: pbuf_free() zwolni tylko strukturę pbuf, a nie dane (bo PBUF_REF)
+    //             // dane zwolni się samoistnie przy kolejnym recv()
+    //         }
+    //         else
+    //         {
+    //             W5X00_PRINTF("pbuf_alloc failed!\n");
+    //             // trzeba wyczyścić bufor W5500, bo inaczej się zatka
+    //             recv_lwip(SOCKET_MACRAW, NULL, pack_len);
+    //         }
+    //     }
+    // }
 
-        //         if (g_netif.input(p, &g_netif) != ERR_OK)
-        //         {
-        //             pbuf_free(p);
-        //         }
-        //     }
-        // }
 
         getsockopt(SOCKET_MACRAW, SO_RECVBUF, &pack_len);
-        if (pack_len > 0) {
-            pack_len = recv_lwip(SOCKET_MACRAW, pack, pack_len);
-            if (pack_len > 0) {
+
+        if (pack_len > 0)
+        {
+            pack_len = recv_lwip(SOCKET_MACRAW, (uint8_t *)pack, pack_len);
+
+            if (pack_len)
+            {
                 p = pbuf_alloc(PBUF_RAW, pack_len, PBUF_POOL);
-                if (p != NULL) {
-                    pbuf_take(p, pack, pack_len);
-                    if (tcpip_input(p, &g_netif) != ERR_OK) {
-                        pbuf_free(p);
-                    }
+                pbuf_take(p, pack, pack_len);
+                // free(pack);
+
+                // pack = malloc(ETHERNET_MTU);
+            }
+            else
+            {
+                W5X00_PRINTF(" No packet received\n");
+            }
+
+            if (pack_len && p != NULL)
+            {
+                
+                LINK_STATS_INC(link.recv);
+                W5X00_PRINTF("STH CAME (%d)(%d)\n",pack_len,p==NULL);
+
+                // if (g_netif.input(p, &g_netif) != ERR_OK)
+                if (tcpip_input(p, &g_netif) != ERR_OK)
+                {
+                    pbuf_free(p);
                 }
             }
         }
+
+
+
+
+
+
+
+
+
+
+        // getsockopt(SOCKET_MACRAW, SO_RECVBUF, &pack_len);
+        // if (pack_len > 0) {
+        //     pack_len = recv_lwip(SOCKET_MACRAW, pack, pack_len);
+        //     if (pack_len > 0) {
+        //         p = pbuf_alloc(PBUF_RAW, pack_len, PBUF_POOL);
+        //         if (p != NULL) {
+        //             pbuf_take(p, pack, pack_len);
+        //             if (tcpip_input(p, &g_netif) != ERR_OK) {
+        //                 pbuf_free(p);
+        //             }
+        //         }
+        //     }
+        // }
         vTaskDelay(pdMS_TO_TICKS(1)); // minimalne odciążenie CPU
 
         // if ((dns_gethostbyname(g_dns_target_domain, &g_resolved, NULL, NULL) == ERR_OK) && (g_dns_get_ip_flag == 0))
