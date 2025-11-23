@@ -295,31 +295,3 @@ void network_initialize(wiz_NetInfo net_info)
 {
     ctlnetwork(CN_SET_NETINFO, (void *)&net_info);
 }
-
-void print_network_information(wiz_NetInfo net_info)
-{
-    uint8_t tmp_str[8] = {
-        0,
-    };
-
-    ctlnetwork(CN_GET_NETINFO, (void *)&net_info);
-    ctlwizchip(CW_GET_ID, (void *)tmp_str);
-
-    if (net_info.dhcp == NETINFO_DHCP)
-    {
-        W5X00_PRINTF("====================================================================================================\n");
-        W5X00_PRINTF(" %s network configuration : DHCP\n\n", (char *)tmp_str);
-    }
-    else
-    {
-        W5X00_PRINTF("====================================================================================================\n");
-        W5X00_PRINTF(" %s network configuration : static\n\n", (char *)tmp_str);
-    }
-
-    W5X00_PRINTF(" MAC         : %02X:%02X:%02X:%02X:%02X:%02X\n", net_info.mac[0], net_info.mac[1], net_info.mac[2], net_info.mac[3], net_info.mac[4], net_info.mac[5]);
-    W5X00_PRINTF(" IP          : %d.%d.%d.%d\n", net_info.ip[0], net_info.ip[1], net_info.ip[2], net_info.ip[3]);
-    W5X00_PRINTF(" Subnet Mask : %d.%d.%d.%d\n", net_info.sn[0], net_info.sn[1], net_info.sn[2], net_info.sn[3]);
-    W5X00_PRINTF(" Gateway     : %d.%d.%d.%d\n", net_info.gw[0], net_info.gw[1], net_info.gw[2], net_info.gw[3]);
-    W5X00_PRINTF(" DNS         : %d.%d.%d.%d\n", net_info.dns[0], net_info.dns[1], net_info.dns[2], net_info.dns[3]);
-    W5X00_PRINTF("====================================================================================================\n\n");
-}

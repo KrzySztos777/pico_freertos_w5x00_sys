@@ -189,13 +189,4 @@ void wizchip_check(void);
  */
 void network_initialize(wiz_NetInfo net_info);
 
-/*! \brief Print network information
- *  \ingroup w5x00_spi
- *
- *  Print network information about MAC address, IP address, Subnet mask, Gateway, DHCP and DNS address.
- *
- *  \param net_info network information.
- */
-void print_network_information(wiz_NetInfo net_info);
-
 #endif /* _W5X00_SPI_H_ */

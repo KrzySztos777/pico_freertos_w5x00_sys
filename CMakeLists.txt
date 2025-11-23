@@ -69,15 +69,17 @@ endif()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 add_subdirectory(${PORT_DIR})
 
-# Dodaj pliki źródłowe
+# Add source files
 target_sources(pico_freertos_w5x00_sys PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/pico_freertos_w5x00_sys.c
 )
 
-# Określ publiczne nagłówki
+# Define public header files
 target_include_directories(pico_freertos_w5x00_sys INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+# Link libraries
 target_link_libraries(pico_freertos_w5x00_sys INTERFACE
     FreeRTOS-Kernel
     IOLIBRARY_FILES 

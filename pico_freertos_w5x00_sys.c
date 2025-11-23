@@ -9,6 +9,7 @@
  * Includes
  * ----------------------------------------------------------------------------------------------------
  */
+#include "pico_freertos_w5x00_sys.h"
 #include <stdio.h>
 
 #include "port_common.h"
@@ -29,65 +30,26 @@
 
 //NO_SYS=0
 #include "lwip/tcpip.h"
-
-/**
- * ----------------------------------------------------------------------------------------------------
- * Macros
- * ----------------------------------------------------------------------------------------------------
- */
-/* Clock */
-#define PLL_SYS_KHZ (133 * 1000)
-
-/* Socket */
-#define SOCKET_MACRAW 0
-
-/* Port */
-#define PORT_LWIPERF 5001
-
 /**
  * ----------------------------------------------------------------------------------------------------
  * Variables
  * ----------------------------------------------------------------------------------------------------
  */
+
 /* Network */
 extern uint8_t mac[6];
 
 /* LWIP */
 struct netif g_netif;
 
-/* DNS */
-static uint8_t g_dns_target_domain[] = "www.eltin.com.pl";
-static uint8_t g_dns_get_ip_flag = 0;
-static uint32_t g_ip;
-static ip_addr_t g_resolved;
+/* pack for incoming frame */
+uint8_t pack[ETHERNET_MTU+50];//50 is margin
 
 /**
  * ----------------------------------------------------------------------------------------------------
  * Functions
  * ----------------------------------------------------------------------------------------------------
  */
-/* Clock */
-static void set_clock_khz(void);
-
-/**
- * ----------------------------------------------------------------------------------------------------
- * Main
- * ----------------------------------------------------------------------------------------------------
- */
-
-uint8_t pack[ETHERNET_MTU+50];//50 is margin
-
-
-void netif_link_callback(struct netif *netif)
-{
-    W5X00_PRINTF("netif link status changed %s\n", netif_is_link_up(netif) ? "up" : "down");
-}
-
-void netif_status_callback(struct netif *netif)
-{
-    W5X00_PRINTF("netif status changed %s\n", ip4addr_ntoa(netif_ip4_addr(netif)));
-}
-
 void w5x00_dhcp_dns_test_nosys_test()
 {
     /* Initialize */
@@ -95,13 +57,10 @@ void w5x00_dhcp_dns_test_nosys_test()
     // uint8_t *pack = malloc(ETHERNET_MTU);
     uint16_t pack_len = 0;
     struct pbuf *p = NULL;
-
-    set_clock_khz();
-
-    // Initialize stdio after the clock change
+    
     stdio_init_all();
 
-    W5X00_SLEEP_MS(1000 * 3); // wait for 3 seconds
+    W5X00_SLEEP_MS(1500); // wait for 1.5 seconds
 
     wizchip_spi_initialize();
     wizchip_cris_initialize();
@@ -113,38 +72,10 @@ void w5x00_dhcp_dns_test_nosys_test()
     // Set ethernet chip MAC address
     setSHAR(mac);
     ctlwizchip(CW_RESET_PHY, 0);
-
-    // // Initialize LWIP in NO_SYS mode
-    // lwip_init();
-
-    // netif_add(&g_netif, IP4_ADDR_ANY, IP4_ADDR_ANY, IP4_ADDR_ANY, NULL, netif_initialize, netif_input);
-    // g_netif.name[0] = 'e';
-    // g_netif.name[1] = '0';
-
-    // // Assign callbacks for link and status
-    // netif_set_link_callback(&g_netif, netif_link_callback);
-    // netif_set_status_callback(&g_netif, netif_status_callback);
-
-
-
-    // // Set the default interface and bring it up
-    // netif_set_default(&g_netif);
-    // netif_set_link_up(&g_netif);
-    // netif_set_up(&g_netif);
-
-    // Uruchamia wątek tcpip_thread()
-    char *test;
-    if((test=pvPortMalloc(1024))!=NULL)
-        W5X00_PRINTF("tcpip_init goes...\n");
-    else
-        while(1){
-            W5X00_PRINTF("CHUJNIA\n");
-            vTaskDelay(pdMS_TO_TICKS(1500));
-        }
-    vTaskDelay(pdMS_TO_TICKS(1500));
     
+    // Uruchamia wątek tcpip_thread()    
     tcpip_init(NULL, NULL);
-vTaskDelay(pdMS_TO_TICKS(1500));
+    
     // Inicjalizacja interfejsu sieciowego (Twojego W5x00)
     ip4_addr_t ipaddr, netmask, gw;
     IP4_ADDR(&ipaddr, 192,168,0,41);
@@ -154,7 +85,7 @@ vTaskDelay(pdMS_TO_TICKS(1500));
     W5X00_PRINTF("Start adding netif...\n");
     vTaskDelay(pdMS_TO_TICKS(1500));
 
-    netif_add(&g_netif, &ipaddr, &netmask, &gw, NULL, netif_initialize/*wizchip_netif_init*/, tcpip_input);
+    netif_add(&g_netif, &ipaddr, &netmask, &gw, NULL, netif_initialize, tcpip_input);
     g_netif.name[0] = 'e';
     g_netif.name[1] = '0';
     
@@ -166,27 +97,13 @@ vTaskDelay(pdMS_TO_TICKS(1500));
     {
         W5X00_PRINTF(" MACRAW socket open failed\n");
     }
-
-
-    etharp_gratuitous(&g_netif);
-    // tcpip_callback((tcpip_callbwack_fn)netif_set_link_up, &g_netif);
-    tcpip_callback(netif_link_callback, &g_netif);
-
-
-    W5X00_PRINTF("TRY netif_set_link_up\n");
-    netif_set_link_up(&g_netif);
-    W5X00_PRINTF("TRY netif_set_up\n");
+    
     netif_set_up(&g_netif);
-    W5X00_PRINTF("EVERYTHING UP\n");
-
-    // Start DHCP configuration for an interface
-    // dhcp_start(&g_netif);
-
-    dns_init();
+    netif_set_link_up(&g_netif);
 
     W5X00_PRINTF("W5x00 init completed!\n");
-    vTaskDelay(pdMS_TO_TICKS(1500));
-    uint8_t getmac[6]={1,2,1,2,1,2};
+    
+    uint8_t getmac[6]={0,0,0,0,0,0};
     getSHAR(&getmac);
     W5X00_PRINTF("getmac %02X:%02X:%02X:%02X:%02X:%02X\n",getmac[0],getmac[1],getmac[2],getmac[3],getmac[4],getmac[5]);
     W5X00_PRINTF("hwaddr %02X:%02X:%02X:%02X:%02X:%02X\n",(g_netif.hwaddr)[0],(g_netif.hwaddr)[1],(g_netif.hwaddr)[2],(g_netif.hwaddr)[3],(g_netif.hwaddr)[4],(g_netif.hwaddr)[5]);
@@ -194,41 +111,6 @@ vTaskDelay(pdMS_TO_TICKS(1500));
     /* Infinite loop */
     while (1)
     {
-    //     getsockopt(SOCKET_MACRAW, SO_RECVBUF, &pack_len);
-
-    // if (pack_len > 0)
-    // {
-    //     pack_len = recv_lwip(SOCKET_MACRAW, (uint8_t *)pack, pack_len);
-
-    //     if (pack_len > 0)
-    //     {
-    //         W5X00_PRINTF("STH CAME (%d bytes)\n", pack_len);
-
-    //         // KLUCZOWA ZMIANA: PBUF_REF zamiast PBUF_POOL + pbuf_take
-    //         p = pbuf_alloc(PBUF_RAW, pack_len, PBUF_POOL);
-    //         if (p != NULL)
-    //         {
-    //             p->payload = pack;           // <-- wskazujemy bezpośrednio na bufor W5500
-    //             LINK_STATS_INC(link.recv);
-
-    //             // Wysyłamy do stosu lwIP
-    //             if (tcpip_input(p, &g_netif) != ERR_OK)
-    //             {
-    //                 pbuf_free(p);
-    //             }
-    //             // UWAGA: pbuf_free() zwolni tylko strukturę pbuf, a nie dane (bo PBUF_REF)
-    //             // dane zwolni się samoistnie przy kolejnym recv()
-    //         }
-    //         else
-    //         {
-    //             W5X00_PRINTF("pbuf_alloc failed!\n");
-    //             // trzeba wyczyścić bufor W5500, bo inaczej się zatka
-    //             recv_lwip(SOCKET_MACRAW, NULL, pack_len);
-    //         }
-    //     }
-    // }
-
-
         getsockopt(SOCKET_MACRAW, SO_RECVBUF, &pack_len);
 
         if (pack_len > 0)
@@ -252,7 +134,6 @@ vTaskDelay(pdMS_TO_TICKS(1500));
             {
                 
                 LINK_STATS_INC(link.recv);
-                W5X00_PRINTF("STH CAME (%d)(%d)\n",pack_len,p==NULL);
 
                 // if (g_netif.input(p, &g_netif) != ERR_OK)
                 if (tcpip_input(p, &g_netif) != ERR_OK)
@@ -262,63 +143,6 @@ vTaskDelay(pdMS_TO_TICKS(1500));
             }
         }
 
-
-
-
-
-
-
-
-
-
-        // getsockopt(SOCKET_MACRAW, SO_RECVBUF, &pack_len);
-        // if (pack_len > 0) {
-        //     pack_len = recv_lwip(SOCKET_MACRAW, pack, pack_len);
-        //     if (pack_len > 0) {
-        //         p = pbuf_alloc(PBUF_RAW, pack_len, PBUF_POOL);
-        //         if (p != NULL) {
-        //             pbuf_take(p, pack, pack_len);
-        //             if (tcpip_input(p, &g_netif) != ERR_OK) {
-        //                 pbuf_free(p);
-        //             }
-        //         }
-        //     }
-        // }
-        vTaskDelay(pdMS_TO_TICKS(1)); // minimalne odciążenie CPU
-
-        // if ((dns_gethostbyname(g_dns_target_domain, &g_resolved, NULL, NULL) == ERR_OK) && (g_dns_get_ip_flag == 0))
-        // {
-        //     g_ip = g_resolved.addr;
-
-        //     W5X00_PRINTF(" DNS success\n");
-        //     W5X00_PRINTF(" Target domain : %s\n", g_dns_target_domain);
-        //     W5X00_PRINTF(" IP of target domain : [%03d.%03d.%03d.%03d]\n", g_ip & 0xFF, (g_ip >> 8) & 0xFF, (g_ip >> 16) & 0xFF, (g_ip >> 24) & 0xFF);
-
-        //     g_dns_get_ip_flag = 1;
-        // }
-
-        /* Cyclic lwIP timers check */
-        // sys_check_timeouts();
+        vTaskDelay(pdMS_TO_TICKS(W5X00_TASK_INTERVAL_MS)); // minimalne odciążenie CPU
     }
-}
-
-/**
- * ----------------------------------------------------------------------------------------------------
- * Functions
- * ----------------------------------------------------------------------------------------------------
- */
-/* Clock */
-static void set_clock_khz(void)
-{
-    // set a system clock frequency in khz
-    set_sys_clock_khz(PLL_SYS_KHZ, true);
-
-    // configure the specified clock
-    clock_configure(
-        clk_peri,
-        0,                                                // No glitchless mux
-        CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLKSRC_PLL_SYS, // System PLL on AUX mux
-        PLL_SYS_KHZ * 1000,                               // Input frequency
-        PLL_SYS_KHZ * 1000                                // Output (must be same as no divider)
-    );
 }
