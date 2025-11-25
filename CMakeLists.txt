@@ -85,6 +85,8 @@ target_link_libraries(pico_freertos_w5x00_sys INTERFACE
     IOLIBRARY_FILES 
     LWIP_FILES
     TIMER_FILES
+    
+    pico_unique_id #last 3 bytes copied to the end of default mac address
     )
 
 # Set compile options

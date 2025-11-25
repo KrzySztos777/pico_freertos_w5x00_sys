@@ -30,6 +30,9 @@
 
 //NO_SYS=0
 #include "lwip/tcpip.h"
+
+#include <string.h>//memcpy,memcmp-(mac)
+#include "pico/unique_id.h"//for mac only
 /**
  * ----------------------------------------------------------------------------------------------------
  * Variables
@@ -50,6 +53,38 @@ uint8_t pack[ETHERNET_MTU+50];//50 is margin
  * Functions
  * ----------------------------------------------------------------------------------------------------
  */
+
+ //unthreadsafe function to set mac address that can be called from any moment
+void w5x00_set_mac(uint8_t setmac[6]){
+    
+    //if NULL or 0,0,0,0,0,0 then set default
+    if(setmac==NULL || !memcmp(setmac,(uint8_t[6]){0,0,0,0,0,0},6)){
+        //it begins with {0x00, 0x08, 0xDC}
+        mac[0]=(uint8_t)0x00;
+        mac[1]=(uint8_t)0x08;
+        mac[2]=(uint8_t)0xDC;
+
+        //it ends with last 3 bytes of pico_unique_board_id_t
+        pico_unique_board_id_t uid;
+        pico_get_unique_board_id(&uid);
+        memcpy(mac+3,uid.id+5,3);
+    }
+    else//copy to local variable
+        memcpy(mac,setmac,6);
+
+    //set to W5500
+    setSHAR(mac);
+    ctlwizchip(CW_RESET_PHY, 0);
+    
+    //copy to netif
+    memcpy(g_netif.hwaddr, mac, 6);
+    g_netif.hwaddr_len = 6;
+}
+
+void w5x00_get_mac(uint8_t getmac[6]){
+    memcpy(getmac,mac,6);
+}
+
 void w5x00_dhcp_dns_test_nosys_test()
 {
     /* Initialize */
@@ -70,8 +105,7 @@ void w5x00_dhcp_dns_test_nosys_test()
     wizchip_check();
 
     // Set ethernet chip MAC address
-    setSHAR(mac);
-    ctlwizchip(CW_RESET_PHY, 0);
+    w5x00_set_mac(mac);
     
     // Uruchamia wątek tcpip_thread()    
     tcpip_init(NULL, NULL);
@@ -104,7 +138,7 @@ void w5x00_dhcp_dns_test_nosys_test()
     W5X00_PRINTF("W5x00 init completed!\n");
     
     uint8_t getmac[6]={0,0,0,0,0,0};
-    getSHAR(&getmac);
+    w5x00_get_mac(getmac);
     W5X00_PRINTF("getmac %02X:%02X:%02X:%02X:%02X:%02X\n",getmac[0],getmac[1],getmac[2],getmac[3],getmac[4],getmac[5]);
     W5X00_PRINTF("hwaddr %02X:%02X:%02X:%02X:%02X:%02X\n",(g_netif.hwaddr)[0],(g_netif.hwaddr)[1],(g_netif.hwaddr)[2],(g_netif.hwaddr)[3],(g_netif.hwaddr)[4],(g_netif.hwaddr)[5]);
 
