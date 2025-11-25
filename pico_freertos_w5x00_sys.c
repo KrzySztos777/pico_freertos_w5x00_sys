@@ -91,7 +91,7 @@ void w5x00_dhcp_dns_test_nosys_test()
     
     netif_set_default(&g_netif);
     // MACRAW socket open
-    retval = socket(SOCKET_MACRAW, Sn_MR_MACRAW, PORT_LWIPERF, 0x00);
+    retval = socket(0, Sn_MR_MACRAW, 0, 0x00);
 
     if (retval < 0)
     {
@@ -111,11 +111,11 @@ void w5x00_dhcp_dns_test_nosys_test()
     /* Infinite loop */
     while (1)
     {
-        getsockopt(SOCKET_MACRAW, SO_RECVBUF, &pack_len);
+        getsockopt(0, SO_RECVBUF, &pack_len);
 
         if (pack_len > 0)
         {
-            pack_len = recv_lwip(SOCKET_MACRAW, (uint8_t *)pack, pack_len);
+            pack_len = recv_lwip(0, (uint8_t *)pack, pack_len);
 
             if (pack_len)
             {
