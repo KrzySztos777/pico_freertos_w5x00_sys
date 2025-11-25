@@ -267,7 +267,7 @@ void wizchip_initialize(void)
     } while (temp == PHY_LINK_OFF);
 }
 
-void wizchip_check(void)
+int wizchip_check(void)
 {
 #if (_WIZCHIP_ == W5100S)
     /* Read version register */
@@ -275,8 +275,7 @@ void wizchip_check(void)
     {
         W5X00_PRINTF(" ACCESS ERR : VERSION != 0x51, read value = 0x%02x\n", getVER());
 
-        while (1)
-            ;
+        return 0;
     }
 #elif (_WIZCHIP_ == W5500)
     /* Read version register */
@@ -284,10 +283,10 @@ void wizchip_check(void)
     {
         W5X00_PRINTF(" ACCESS ERR : VERSION != 0x04, read value = 0x%02x\n", getVERSIONR());
 
-        while (1)
-            ;
+        return 0;
     }
 #endif
+    return 1;
 }
 
 /* Network */
