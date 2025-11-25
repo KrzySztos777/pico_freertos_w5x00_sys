@@ -129,6 +129,12 @@ void w5x00_task()
     g_netif.name[1] = '0';
     netif_set_default(&g_netif);
 
+    //start dhcp if needed and is available
+    #if LWIP_DHCP
+    if(dhcp)
+        dhcp_start(&g_netif);
+    #endif
+
     //try to open MACRAW socket. It should always go
     do {
         retval = socket(0, Sn_MR_MACRAW, 0, 0x00);
