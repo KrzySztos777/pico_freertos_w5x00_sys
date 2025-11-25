@@ -102,9 +102,9 @@ void w5x00_task()
     // Run tcpip_thread  
     tcpip_init(NULL, NULL);
     
-    ////////////////////////////////////
-    //General start of preparing netif//
-    ////////////////////////////////////
+    /////////////////////////////////////////
+    //General start of preparing lwip netif//
+    /////////////////////////////////////////
 
     //if there is no DHCP enabled then dhcp variable is set to 0- avoiding "dhcp_start" func not recognized
     #if !LWIP_DHCP

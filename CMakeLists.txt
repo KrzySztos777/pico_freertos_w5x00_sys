@@ -77,6 +77,7 @@ target_sources(pico_freertos_w5x00_sys PUBLIC
 # Define public header files
 target_include_directories(pico_freertos_w5x00_sys INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}
 )
 
 # Link libraries
