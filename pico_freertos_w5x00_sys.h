@@ -10,12 +10,14 @@
 enum w5x00_state_enum {
     W5X00_NOT_STARTED = 0,
     W5X00_STARTING_IN_PROGRESS,
+    W5X00_CHIP_INIT_FAILED,//it is critical. W5x00 initialization failed
     W5X00_CHIP_NOT_DETECTED,//it is critical. No W5x00 chip detected!
     W5X00_MACRAW_SOCKET_FAILED,//it is critical. Can't open socket on W5x00 for lwip communication
     W5X00_RUNNING,
     W5X00_OK = W5X00_RUNNING
 };
-
+#define USE_SPI_DMA
+#define W5X00_PRINTF                    printf//for debugging- may be set to NULL
 #define W5X00_TASK_INTERVAL_MS          1 //interval in ms for task if polling SPI
 
 //we may prevent for setting ip,nm or gw to 0.0.0.0- if there is no dhcp

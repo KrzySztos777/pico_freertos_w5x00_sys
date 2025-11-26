@@ -13,7 +13,6 @@
 #include "task.h"
 
 #define W5X00_SLEEP_MS(ms)      vTaskDelay(pdMS_TO_TICKS(ms))
-#define W5X00_PRINTF            printf//NULL
 /**
  * ----------------------------------------------------------------------------------------------------
  * Includes

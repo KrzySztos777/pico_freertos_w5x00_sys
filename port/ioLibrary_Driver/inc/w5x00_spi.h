@@ -168,7 +168,7 @@ void wizchip_reset(void);
  *
  *  \param none
  */
-void wizchip_initialize(void);
+int wizchip_initialize(void);
 
 /*! \brief Check chip version
  *  \ingroup w5x00_spi

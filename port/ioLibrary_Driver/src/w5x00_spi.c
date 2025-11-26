@@ -74,16 +74,16 @@ void wizchip_reset()
 #ifdef USE_SPI_PIO
     gpio_pull_up(PIN_RST);
     gpio_set_dir(PIN_RST, GPIO_OUT);
-    W5X00_SLEEP_MS(5);
+    vTaskDelay(5);
 #else
     gpio_set_dir(PIN_RST, GPIO_OUT);
 #endif
 
     gpio_put(PIN_RST, 0);
-    W5X00_SLEEP_MS(100);
+    vTaskDelay(100);
 
     gpio_put(PIN_RST, 1);
-    W5X00_SLEEP_MS(100);
+    vTaskDelay(100);
 
     bi_decl(bi_1pin_with_name(PIN_RST, "W5x00 RESET"));
 }
@@ -216,7 +216,7 @@ void wizchip_cris_initialize(void)
     reg_wizchip_cris_cbfunc(wizchip_critical_section_lock, wizchip_critical_section_unlock);
 }
 
-void wizchip_initialize(void)
+int wizchip_initialize(void)
 {
 
 #ifdef USE_SPI_PIO
@@ -241,7 +241,6 @@ void wizchip_initialize(void)
 #endif
 
     /* W5x00 initialize */
-    uint8_t temp;
 #if (_WIZCHIP_ == W5100S)
     uint8_t memsize[2][4] = {{8, 0, 0, 0}, {8, 0, 0, 0}};
 #elif (_WIZCHIP_ == W5500)
@@ -250,21 +249,24 @@ void wizchip_initialize(void)
 
     if (ctlwizchip(CW_INIT_WIZCHIP, (void *)memsize) == -1)
     {
-        W5X00_PRINTF(" W5x00 initialized fail\n");
+        // W5X00_PRINTF(" W5x00 initialized fail\n");
 
-        return;
+        return 0;
     }
 
     /* Check PHY link status */
-    do
-    {
-        if (ctlwizchip(CW_GET_PHYLINK, (void *)&temp) == -1)
-        {
-            W5X00_PRINTF(" Unknown PHY link status\n");
+    // uint8_t temp;
+    // do
+    // {
+    //     if (ctlwizchip(CW_GET_PHYLINK, (void *)&temp) == -1)
+    //     {
+    //         // W5X00_PRINTF(" Unknown PHY link status\n");
 
-            return;
-        }
-    } while (temp == PHY_LINK_OFF);
+    //         return 0;
+    //     }
+    // } while (temp == PHY_LINK_OFF);
+
+    return 1;
 }
 
 int wizchip_check(void)
@@ -273,7 +275,7 @@ int wizchip_check(void)
     /* Read version register */
     if (getVER() != 0x51)
     {
-        W5X00_PRINTF(" ACCESS ERR : VERSION != 0x51, read value = 0x%02x\n", getVER());
+        // W5X00_PRINTF(" ACCESS ERR : VERSION != 0x51, read value = 0x%02x\n", getVER());
 
         return 0;
     }
@@ -281,7 +283,7 @@ int wizchip_check(void)
     /* Read version register */
     if (getVERSIONR() != 0x04)
     {
-        W5X00_PRINTF(" ACCESS ERR : VERSION != 0x04, read value = 0x%02x\n", getVERSIONR());
+        // W5X00_PRINTF(" ACCESS ERR : VERSION != 0x04, read value = 0x%02x\n", getVERSIONR());
 
         return 0;
     }

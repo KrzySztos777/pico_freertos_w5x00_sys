@@ -77,24 +77,30 @@ void w5x00_task()
     uint16_t pack_len = 0;
     struct pbuf *p = NULL;
 
-    // W5X00_SLEEP_MS(1500); // wait for 1.5 seconds
+    W5X00_SLEEP_MS(1500); // wait for 1.5 seconds
     W5X00_PRINTF("W5x00 init starts...\n");
 
     wizchip_spi_initialize();
     wizchip_cris_initialize();
-
+    
     //try detect W5x00 chip.
     do {
         wizchip_reset();
-        wizchip_initialize();
-        if (wizchip_check() == 0) {
-            w5x00_state = W5X00_CHIP_NOT_DETECTED;
+
+        if (wizchip_initialize() == 0) {
+            w5x00_state = W5X00_CHIP_INIT_FAILED;
+            W5X00_PRINTF("W5x00 initialized fail!\n");
             vTaskDelay(pdMS_TO_TICKS(100));
         }
-    } while (w5x00_state == W5X00_CHIP_NOT_DETECTED);
 
-    // W5x00 chip detected. lets update state to the previous one
-    w5x00_state=W5X00_STARTING_IN_PROGRESS;
+        else if (wizchip_check() == 0) {
+            w5x00_state = W5X00_CHIP_NOT_DETECTED;
+            W5X00_PRINTF("ACCESS ERR : VERSION of W5x00 chip doesn't match!\n");
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
+        else
+            w5x00_state = W5X00_STARTING_IN_PROGRESS;
+    } while (w5x00_state == W5X00_CHIP_NOT_DETECTED || w5x00_state == W5X00_CHIP_INIT_FAILED);
 
     // Set ethernet chip MAC address
     w5x00_set_mac(mac);
