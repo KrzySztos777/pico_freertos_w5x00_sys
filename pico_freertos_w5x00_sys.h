@@ -16,9 +16,10 @@ enum w5x00_state_enum {
     W5X00_RUNNING,
     W5X00_OK = W5X00_RUNNING
 };
-#define USE_SPI_DMA
-#define W5X00_PRINTF                    printf//for debugging- may be set to NULL
+
+#define W5X00_PRINTF                    printf//for debugging- may be set to NULL if you don't want to se it
 #define W5X00_TASK_INTERVAL_MS          1 //interval in ms for task if polling SPI
+#define W5X00_USE_SPI_DMA               1 //set DMA if SPI is used
 
 //we may prevent for setting ip,nm or gw to 0.0.0.0- if there is no dhcp
 #ifndef PREVENT_NULL_IP

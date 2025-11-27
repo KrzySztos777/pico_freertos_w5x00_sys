@@ -29,7 +29,7 @@
  */
 static critical_section_t g_wizchip_cri_sec;
 
-#ifdef USE_SPI_DMA
+#if W5X00_USE_SPI_DMA
 static uint dma_tx;
 static uint dma_rx;
 static dma_channel_config dma_channel_config_tx;
@@ -104,7 +104,7 @@ static void wizchip_write(uint8_t tx_data)
     spi_write_blocking(SPI_PORT, &tx_data, 1);
 }
 
-#ifdef USE_SPI_DMA
+#if W5X00_USE_SPI_DMA
 static void wizchip_read_burst(uint8_t *pBuf, uint16_t len)
 {
     uint8_t dummy_data = 0xFF;
@@ -190,7 +190,7 @@ void wizchip_spi_initialize(void)
     // make the SPI pins available to picotool
     bi_decl(bi_1pin_with_name(PIN_CS, "W5x00 CHIP SELECT"));
 
-#ifdef USE_SPI_DMA
+#if W5X00_USE_SPI_DMA
     dma_tx = dma_claim_unused_channel(true);
     dma_rx = dma_claim_unused_channel(true);
 
@@ -236,7 +236,7 @@ int wizchip_initialize(void)
     /* SPI function register */
     reg_wizchip_spi_cbfunc(wizchip_read, wizchip_write);
 #endif
-#ifdef USE_SPI_DMA
+#if W5X00_USE_SPI_DMA
     reg_wizchip_spiburst_cbfunc(wizchip_read_burst, wizchip_write_burst);
 #endif
 
