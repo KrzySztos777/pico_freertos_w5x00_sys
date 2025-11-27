@@ -13,8 +13,6 @@
 #include "task.h"
 
 #include "pico_freertos_w5x00_sys.h"
-
-#define W5X00_SLEEP_MS(ms)      vTaskDelay(pdMS_TO_TICKS(ms))
 /**
  * ----------------------------------------------------------------------------------------------------
  * Includes

@@ -74,16 +74,16 @@ void wizchip_reset()
 #ifdef USE_SPI_PIO
     gpio_pull_up(PIN_RST);
     gpio_set_dir(PIN_RST, GPIO_OUT);
-    vTaskDelay(5);
+    W5X00_SLEEP_MS(5);
 #else
     gpio_set_dir(PIN_RST, GPIO_OUT);
 #endif
 
     gpio_put(PIN_RST, 0);
-    vTaskDelay(100);
+    W5X00_SLEEP_MS(100);
 
     gpio_put(PIN_RST, 1);
-    vTaskDelay(100);
+    W5X00_SLEEP_MS(100);
 
     bi_decl(bi_1pin_with_name(PIN_RST, "W5x00 RESET"));
 }
