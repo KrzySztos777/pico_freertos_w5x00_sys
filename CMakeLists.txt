@@ -11,8 +11,9 @@ if(NOT DEFINED PICO_SDK_PATH)
     endif()
 endif()
 
+#CMake's imports
 include(pico_sdk_import.cmake)
-include(wiznet_pico_lwip_c_sdk_version.cmake)
+include(FreeRTOS_Kernel_import.cmake)
 
 # Set project name and informations
 project(pico_freertos_w5x00_sys C CXX ASM)
