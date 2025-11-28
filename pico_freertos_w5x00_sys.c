@@ -47,6 +47,9 @@ extern uint8_t mac[6];
 struct netif g_netif;
 #include "lwip/ip4_addr.h"
 
+/* link status- to avoid multi set link up */
+uint8_t link_status=PHY_LINK_OFF;
+
 /* IP addresses*/
 ip4_addr_t ip = IP4(0,0,0,0); // ip address
 ip4_addr_t nm = IP4(0,0,0,0); // netmask
@@ -159,23 +162,39 @@ void w5x00_task()
 
     //lets set ^UP^ netif
     netif_set_up(&g_netif);
-    netif_set_link_up(&g_netif);//TODO- check cable connection should be there?
+
+    //if no interrupt and link checking is disabled then just set link up and forgot about it
+    #if !W5X00_INTERRUPT && !W5X00_CHECK_LINK_TIMEOUT_MS
+    netif_set_link_up(&g_netif);
+    #endif
 
     W5X00_PRINTF("W5x00 init completed!\n");
-    
-    uint8_t getmac[6]={0,0,0,0,0,0};
-    w5x00_get_mac(getmac);
-    W5X00_PRINTF("getmac %02X:%02X:%02X:%02X:%02X:%02X\n",getmac[0],getmac[1],getmac[2],getmac[3],getmac[4],getmac[5]);
-    W5X00_PRINTF("hwaddr %02X:%02X:%02X:%02X:%02X:%02X\n",(g_netif.hwaddr)[0],(g_netif.hwaddr)[1],(g_netif.hwaddr)[2],(g_netif.hwaddr)[3],(g_netif.hwaddr)[4],(g_netif.hwaddr)[5]);
-
     //w5x00 setup finished!
     w5x00_state=W5X00_RUNNING;
+
+    //first, initial read frame from w5x00
+    getsockopt(0, SO_RECVBUF, &pack_len);
 
     /* Infinite loop. Let's send packets to the lwip's mailbox! */
     while (1)
     {
-        //for first, initial read frame from w5x00
-        getsockopt(0, SO_RECVBUF, &pack_len);
+        //if interrupts not enabled and checking link status is on
+        #if !W5X00_INTERRUPT && W5X00_CHECK_LINK_TIMEOUT_MS
+        //last frame read or link check in ticks       
+        static TickType_t list_read_time=(TickType_t)0;
+        static uint8_t current_link_status=PHY_LINK_OFF;
+        if(xTaskGetTickCount() - list_read_time >= pdMS_TO_TICKS(W5X00_CHECK_LINK_TIMEOUT_MS)){//if no activity for time defined in W5X00_CHECK_LINK_TIMEOUT_MS
+            if(ctlwizchip(CW_GET_PHYLINK, (void *)&current_link_status) != -1){//and link status is known
+                if(current_link_status==PHY_LINK_ON && current_link_status!=link_status)//and link is on and changed
+                    netif_set_link_up(&g_netif);//then set link ^UP^
+                else if(current_link_status==PHY_LINK_OFF && current_link_status!=link_status)//otherwise if link is down and has beenn changed
+                    netif_set_link_down(&g_netif);//set link _DOWN_
+            //save current link status
+            link_status=current_link_status;
+            }
+        list_read_time=xTaskGetTickCount();
+        }
+        #endif
         
         //make tcpip_input while buffer is empty
         while (pack_len > 0)
@@ -194,7 +213,6 @@ void w5x00_task()
 
             if (pack_len && p != NULL)
             {
-                
                 LINK_STATS_INC(link.recv);
 
                 // if (g_netif.input(p, &g_netif) != ERR_OK)
@@ -205,23 +223,22 @@ void w5x00_task()
             }
 
             //if too much packets you may want to give a breath
-            #if W5X00_DRAIN_INTERVAL_MS == -1
-            // *nothing*
-            #elif W5X00_DRAIN_INTERVAL_MS == 0
-            taskYIELD();
-            #else
-            vTaskDelay(pdMS_TO_TICKS(W5X00_DRAIN_INTERVAL_MS));
+            W5X00_DRAIN_SLEEP();
+
+            //save last read for checking link status
+            #if !W5X00_INTERRUPT && W5X00_CHECK_LINK_TIMEOUT_MS
+            list_read_time=xTaskGetTickCount();
             #endif
 
-            //check if buffer empty
+            //read until buffer is empty
             getsockopt(0, SO_RECVBUF, &pack_len);
         }
 
-        #if W5X00_POLL_INTERVAL_MS == 0
-        taskYIELD();
-        #else
-        vTaskDelay(pdMS_TO_TICKS(W5X00_POLL_INTERVAL_MS));
-        #endif
+        //let's give a breathe for this task
+        W5X00_POLL_SLEEP();
+
+        //check if something in buffer
+        getsockopt(0, SO_RECVBUF, &pack_len);
     }
 }
 

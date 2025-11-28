@@ -18,10 +18,11 @@ enum w5x00_state_enum {
 };
 
 #define W5X00_PRINTF                    printf//for debugging- may be set to NULL if you don't want to se it
-#define W5X00_INTERRUPT                 1//if enabled then SPI is not polled but it waits for GPIO interrupt
-#define W5X00_POLL_INTERVAL_MS          0 //interval in ms for task if polling SPI. 0=taskYIELD
-#define W5X00_DRAIN_INTERVAL_MS         -1 //interval in ms during draining packets from W5x00. 0=taskYIELD. -1==*nothing*
-#define W5X00_USE_SPI_DMA               1 //set DMA if SPI is used
+#define W5X00_INTERRUPT                 0//if enabled then SPI is not polled but it waits for GPIO interrupt
+#define W5X00_POLL_SLEEP()              taskYIELD() //function during SPI polling. taskYIELD fastest. May be also vTaskDelay(1)
+#define W5X00_DRAIN_SLEEP()             NULL//function during draining packets from W5x00. NULL is fastest. May be also taskYIELD or vTaskDelay(1)
+#define W5X00_USE_SPI_DMA               1//set DMA if SPI is used
+#define W5X00_CHECK_LINK_TIMEOUT_MS     100//if no traffic for this time then check link status. if 0 then link always up
 #define W5X00_SLEEP_MS(ms)              vTaskDelay(pdMS_TO_TICKS(ms))
 
 //we may prevent for setting ip,nm or gw to 0.0.0.0- if there is no dhcp
