@@ -225,17 +225,17 @@ void w5x00_task()
     }
 }
 
-//unthreadsafe function to set mac address that can be called from any moment
+//unthreadsafe function to set mac address. Best option is call it only once at startup
 void w5x00_set_mac(uint8_t setmac[6]){
     
     //if NULL or {0,0,0,0,0,0} then set default
     if(setmac==NULL || !memcmp(setmac,(uint8_t[6]){0,0,0,0,0,0},6)){
-        //it begins with {0x00, 0x08, 0xDC}
+        //begins with {0x00, 0x08, 0xDC}
         mac[0]=(uint8_t)0x00;
         mac[1]=(uint8_t)0x08;
         mac[2]=(uint8_t)0xDC;
 
-        //it ends with last 3 bytes of pico_unique_board_id_t
+        //ends with last 3 bytes of pico_unique_board_id_t
         pico_unique_board_id_t uid;
         pico_get_unique_board_id(&uid);
         memcpy(mac+3,uid.id+5,3);
@@ -252,6 +252,7 @@ void w5x00_set_mac(uint8_t setmac[6]){
     g_netif.hwaddr_len = 6;
 }
 
+//copy mac address to desired pointer
 void w5x00_get_mac(uint8_t getmac[6]){
     memcpy(getmac,mac,6);
 }
