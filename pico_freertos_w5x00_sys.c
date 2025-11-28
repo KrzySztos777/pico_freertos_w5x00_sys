@@ -54,10 +54,10 @@ ip4_addr_t gw = IP4(0,0,0,0); // gateaway
 int dhcp = 0;//is dhcp need to be set?
 
 /* pack for incoming frame */
-uint8_t pack[ETHERNET_MTU+50];//50 is margin
+uint8_t pack[ETHERNET_MTU+50];//50 is margin for ethernet, VLAN, etc.
 
 /* state of initializing W5x00*/
-enum w5x00_state_enum w5x00_state=W5X00_NOT_STARTED;//it is atomic 
+enum w5x00_state_enum w5x00_state=W5X00_NOT_STARTED;//it is threaten as atomic 
 
 /**
  * ----------------------------------------------------------------------------------------------------
@@ -174,9 +174,11 @@ void w5x00_task()
     /* Infinite loop. Let's send packets to the lwip's mailbox! */
     while (1)
     {
+        //for first, initial read frame from w5x00
         getsockopt(0, SO_RECVBUF, &pack_len);
-
-        if (pack_len > 0)
+        
+        //make tcpip_input while buffer is empty
+        while (pack_len > 0)
         {
             pack_len = recv_lwip(0, (uint8_t *)pack, pack_len);
 
@@ -184,9 +186,6 @@ void w5x00_task()
             {
                 p = pbuf_alloc(PBUF_RAW, pack_len, PBUF_POOL);
                 pbuf_take(p, pack, pack_len);
-                // free(pack);
-
-                // pack = malloc(ETHERNET_MTU);
             }
             else
             {
@@ -204,9 +203,25 @@ void w5x00_task()
                     pbuf_free(p);
                 }
             }
+
+            //if too much packets you may want to give a breath
+            #if W5X00_DRAIN_INTERVAL_MS == -1
+            // *nothing*
+            #elif W5X00_DRAIN_INTERVAL_MS == 0
+            taskYIELD();
+            #else
+            vTaskDelay(pdMS_TO_TICKS(W5X00_DRAIN_INTERVAL_MS));
+            #endif
+
+            //check if buffer empty
+            getsockopt(0, SO_RECVBUF, &pack_len);
         }
 
-        vTaskDelay(pdMS_TO_TICKS(W5X00_TASK_INTERVAL_MS)); // minimalne odciążenie CPU
+        #if W5X00_POLL_INTERVAL_MS == 0
+        taskYIELD();
+        #else
+        vTaskDelay(pdMS_TO_TICKS(W5X00_POLL_INTERVAL_MS));
+        #endif
     }
 }
 

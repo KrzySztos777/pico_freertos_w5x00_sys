@@ -1,16 +1,6 @@
 # CMake minimum required version
 cmake_minimum_required(VERSION 3.12)
 
-# Pull in SDK (must be before project)
-if(NOT DEFINED PICO_SDK_PATH)
-    if(DEFINED ENV{PICO_SDK_PATH})
-        set(PICO_SDK_PATH $ENV{PICO_SDK_PATH})
-        message(STATUS "Using PICO_SDK_PATH from environment: ${PICO_SDK_PATH}")
-    else()
-        message(FATAL_ERROR "PICO_SDK_PATH not set! Please set it in environment or pass -DPICO_SDK_PATH=<path> to cmake.")
-    endif()
-endif()
-
 #CMake's imports
 include(pico_sdk_import.cmake)
 include(FreeRTOS_Kernel_import.cmake)
