@@ -71,11 +71,12 @@ void wizchip_gpio_interrupt_callback(uint gpio, uint32_t events)
         if (sn_ir) {
             ctlsocket(0, CS_CLR_INTERRUPT, &sn_ir);
         }
-        uint8_t cir = 0;
-        ctlwizchip(CW_GET_INTERRUPT, &cir);
-        if (cir) {
-            ctlwizchip(CW_CLR_INTERRUPT, &cir);
-        }
+        //below chip-level rearm is not needed
+        // uint8_t cir = 0;
+        // ctlwizchip(CW_GET_INTERRUPT, &cir);
+        // if (cir) {
+        //     ctlwizchip(CW_CLR_INTERRUPT, &cir);
+        // }
 
         //send callback
         if (callback_ptr != NULL)

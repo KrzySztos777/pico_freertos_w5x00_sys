@@ -87,11 +87,6 @@ void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw)
     memcpy(&nm,_nm,sizeof(ip4_addr_t));
     memcpy(&gw,_gw,sizeof(ip4_addr_t));
 
-    #if W5X00_DONT_SET_IRQ_CB
-    //set callback. 5X00_INT_CB(gpio,events) must be fired from another place
-    gpio_set_irq_enabled_with_callback(PIN_INT, GPIO_IRQ_EDGE_FALL, true, &wizchip_gpio_interrupt_callback);
-    #endif
-
     xTaskCreate(w5x00_task, W5X00_THREAD_NAME, W5X00_THREAD_STACKSIZE, NULL, W5X00_THREAD_PRIO, &w5x00TaskHandle);
 
     //w5x00 has been started
@@ -106,7 +101,7 @@ static void w5x00_task()
     uint16_t pack_len = 0;
     struct pbuf *p = NULL;
 
-    W5X00_SLEEP_MS(1500); // wait for 1.5 seconds
+    W5X00_SLEEP_MS(pdMS_TO_TICKS(W5X00_INIT_DELAY_MS)); // wait some time. may be usefull
     W5X00_PRINTF("W5x00 init starts...\n");
 
     wizchip_spi_initialize();
@@ -131,7 +126,7 @@ static void w5x00_task()
             w5x00_state = W5X00_STARTING_IN_PROGRESS;
     } while (w5x00_state == W5X00_CHIP_NOT_DETECTED || w5x00_state == W5X00_CHIP_INIT_FAILED);
 
-    #if W5X00_INTERRUPT
+    #if !W5X00_DONT_SET_IRQ_CB && W5X00_INTERRUPT
     wizchip_gpio_interrupt_initialize(0, w5x00_int_handler);
     #endif
 
