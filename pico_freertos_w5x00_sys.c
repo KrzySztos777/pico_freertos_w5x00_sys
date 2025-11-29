@@ -45,7 +45,6 @@ extern uint8_t mac[6];
 
 /* LWIP */
 struct netif g_netif;
-#include "lwip/ip4_addr.h"
 
 /* link status- to avoid multi set link up */
 uint8_t link_status=PHY_LINK_OFF;
@@ -62,18 +61,32 @@ uint8_t pack[ETHERNET_MTU+50];//50 is margin for ethernet, VLAN, etc.
 /* state of initializing W5x00*/
 enum w5x00_state_enum w5x00_state=W5X00_NOT_STARTED;//it is threaten as atomic 
 
+/*task handle for notifications (interrupt uses it)*/
+xTaskHandle w5x00TaskHandle=NULL;
 /**
  * ----------------------------------------------------------------------------------------------------
  * Functions
  * ----------------------------------------------------------------------------------------------------
  */
 
-
-void w5x00_task()
+void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw)
 {
+    //copy argument to local
+    dhcp=_dhcp;
+    memcpy(&ip,_ip,sizeof(ip4_addr_t));
+    memcpy(&nm,_nm,sizeof(ip4_addr_t));
+    memcpy(&gw,_gw,sizeof(ip4_addr_t));
+
+    xTaskCreate(w5x00_task, W5X00_THREAD_NAME, W5X00_THREAD_STACKSIZE, NULL, W5X00_THREAD_PRIO, &w5x00TaskHandle);
+
+    //set something needed before task run
+
     //w5x00 has been started
     w5x00_state=W5X00_STARTING_IN_PROGRESS;
+}
 
+static void w5x00_task()
+{
     /* Initialize */
     int8_t retval = 0;
     // uint8_t *pack = malloc(ETHERNET_MTU);
@@ -169,6 +182,13 @@ void w5x00_task()
     #endif
 
     W5X00_PRINTF("W5x00 init completed!\n");
+    // uint8_t getmac[6]={0,0,0,0,0,0};
+    // w5x00_get_mac(getmac);
+    // W5X00_PRINTF("getmac %02X:%02X:%02X:%02X:%02X:%02X\n",getmac[0],getmac[1],getmac[2],getmac[3],getmac[4],getmac[5]);
+    // W5X00_PRINTF("hwaddr %02X:%02X:%02X:%02X:%02X:%02X\n",(g_netif.hwaddr)[0],(g_netif.hwaddr)[1],(g_netif.hwaddr)[2],(g_netif.hwaddr)[3],(g_netif.hwaddr)[4],(g_netif.hwaddr)[5]);
+    // getmac[0]=0xFFU;getmac[0]=0U;getmac[0]=0U;getmac[0]=0U;getmac[0]=0U;getmac[0]=0U;
+    // getSHAR(getmac);
+    // W5X00_PRINTF("getmac %02X:%02X:%02X:%02X:%02X:%02X\n",getmac[0],getmac[1],getmac[2],getmac[3],getmac[4],getmac[5]);
     //w5x00 setup finished!
     w5x00_state=W5X00_RUNNING;
 
@@ -181,18 +201,10 @@ void w5x00_task()
         //if interrupts not enabled and checking link status is on
         #if !W5X00_INTERRUPT && W5X00_CHECK_LINK_TIMEOUT_MS
         //last frame read or link check in ticks       
-        static TickType_t list_read_time=(TickType_t)0;
-        static uint8_t current_link_status=PHY_LINK_OFF;
-        if(xTaskGetTickCount() - list_read_time >= pdMS_TO_TICKS(W5X00_CHECK_LINK_TIMEOUT_MS)){//if no activity for time defined in W5X00_CHECK_LINK_TIMEOUT_MS
-            if(ctlwizchip(CW_GET_PHYLINK, (void *)&current_link_status) != -1){//and link status is known
-                if(current_link_status==PHY_LINK_ON && current_link_status!=link_status)//and link is on and changed
-                    netif_set_link_up(&g_netif);//then set link ^UP^
-                else if(current_link_status==PHY_LINK_OFF && current_link_status!=link_status)//otherwise if link is down and has beenn changed
-                    netif_set_link_down(&g_netif);//set link _DOWN_
-            //save current link status
-            link_status=current_link_status;
-            }
-        list_read_time=xTaskGetTickCount();
+        static TickType_t last_read_time=(TickType_t)0;
+        if(xTaskGetTickCount() - last_read_time >= pdMS_TO_TICKS(W5X00_CHECK_LINK_TIMEOUT_MS)){//if no activity for time defined in W5X00_CHECK_LINK_TIMEOUT_MS
+            w5x00_check_link_status();
+            last_read_time=xTaskGetTickCount();
         }
         #endif
         
@@ -227,7 +239,7 @@ void w5x00_task()
 
             //save last read for checking link status
             #if !W5X00_INTERRUPT && W5X00_CHECK_LINK_TIMEOUT_MS
-            list_read_time=xTaskGetTickCount();
+            last_read_time=xTaskGetTickCount();
             #endif
 
             //read until buffer is empty
@@ -272,4 +284,20 @@ void w5x00_set_mac(uint8_t setmac[6]){
 //copy mac address to desired pointer
 void w5x00_get_mac(uint8_t getmac[6]){
     memcpy(getmac,mac,6);
+}
+
+//check link status
+void w5x00_check_link_status(){
+    //temporary var
+    uint8_t current_link_status=PHY_LINK_OFF;
+
+    //checing link status and setting link up/down
+    if(ctlwizchip(CW_GET_PHYLINK, (void *)&current_link_status) != -1){//iflink status is known
+        if(current_link_status==PHY_LINK_ON && current_link_status!=link_status)//and link is on and changed
+            netif_set_link_up(&g_netif);//then set link ^UP^
+        else if(current_link_status==PHY_LINK_OFF && current_link_status!=link_status)//otherwise if link is down and has beenn changed
+            netif_set_link_down(&g_netif);//set link _DOWN_
+    //save current link status
+    link_status=current_link_status;
+    }
 }
