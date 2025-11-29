@@ -34,6 +34,8 @@
 
 #include <string.h>//memcpy,memcmp-(mac)
 #include "pico/unique_id.h"//for mac only
+
+#include "w5x00_gpio_irq.h"//interrrupt
 /**
  * ----------------------------------------------------------------------------------------------------
  * Variables
@@ -68,6 +70,14 @@ xTaskHandle w5x00TaskHandle=NULL;
  * Functions
  * ----------------------------------------------------------------------------------------------------
  */
+#if W5X00_INTERRUPT
+//function registered as callback inside wizchip_gpio_interrupt_initialize. It wakes up w5x00 task
+static void w5x00_int_handler(){
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    vTaskNotifyGiveFromISR(w5x00TaskHandle, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+#endif
 
 void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw)
 {
@@ -77,9 +87,12 @@ void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw)
     memcpy(&nm,_nm,sizeof(ip4_addr_t));
     memcpy(&gw,_gw,sizeof(ip4_addr_t));
 
-    xTaskCreate(w5x00_task, W5X00_THREAD_NAME, W5X00_THREAD_STACKSIZE, NULL, W5X00_THREAD_PRIO, &w5x00TaskHandle);
+    #if W5X00_DONT_SET_IRQ_CB
+    //set callback. 5X00_INT_CB(gpio,events) must be fired from another place
+    gpio_set_irq_enabled_with_callback(PIN_INT, GPIO_IRQ_EDGE_FALL, true, &wizchip_gpio_interrupt_callback);
+    #endif
 
-    //set something needed before task run
+    xTaskCreate(w5x00_task, W5X00_THREAD_NAME, W5X00_THREAD_STACKSIZE, NULL, W5X00_THREAD_PRIO, &w5x00TaskHandle);
 
     //w5x00 has been started
     w5x00_state=W5X00_STARTING_IN_PROGRESS;
@@ -118,8 +131,13 @@ static void w5x00_task()
             w5x00_state = W5X00_STARTING_IN_PROGRESS;
     } while (w5x00_state == W5X00_CHIP_NOT_DETECTED || w5x00_state == W5X00_CHIP_INIT_FAILED);
 
+    #if W5X00_INTERRUPT
+    wizchip_gpio_interrupt_initialize(0, w5x00_int_handler);
+    #endif
+
     // Set ethernet chip MAC address
     w5x00_set_mac(mac);
+    W5X00_PRINTF("W5X00 MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",mac[0],mac[1],mac[2],mac[3],mac[4],mac[5]);
     
     // Run tcpip_thread  
     tcpip_init(NULL, NULL);
@@ -177,11 +195,13 @@ static void w5x00_task()
     netif_set_up(&g_netif);
 
     //if no interrupt and link checking is disabled then just set link up and forgot about it
-    #if !W5X00_INTERRUPT && !W5X00_CHECK_LINK_TIMEOUT_MS
+    #if !W5X00_CHECK_LINK_TIMEOUT_MS
     netif_set_link_up(&g_netif);
     #endif
 
     W5X00_PRINTF("W5x00 init completed!\n");
+
+    //PRINT MAC INFORMATION FROM EVERY PLACE- TO BE SURE
     // uint8_t getmac[6]={0,0,0,0,0,0};
     // w5x00_get_mac(getmac);
     // W5X00_PRINTF("getmac %02X:%02X:%02X:%02X:%02X:%02X\n",getmac[0],getmac[1],getmac[2],getmac[3],getmac[4],getmac[5]);
@@ -190,6 +210,7 @@ static void w5x00_task()
     // getSHAR(getmac);
     // W5X00_PRINTF("getmac %02X:%02X:%02X:%02X:%02X:%02X\n",getmac[0],getmac[1],getmac[2],getmac[3],getmac[4],getmac[5]);
     //w5x00 setup finished!
+
     w5x00_state=W5X00_RUNNING;
 
     //first, initial read frame from w5x00
@@ -198,8 +219,12 @@ static void w5x00_task()
     /* Infinite loop. Let's send packets to the lwip's mailbox! */
     while (1)
     {
+        #if W5X00_INTERRUPT && W5X00_CHECK_LINK_TIMEOUT_MS
+        static uint32_t notify=0;//set to 0 to start link at least once
+        if(!notify)
+            w5x00_check_link_status();
         //if interrupts not enabled and checking link status is on
-        #if !W5X00_INTERRUPT && W5X00_CHECK_LINK_TIMEOUT_MS
+        #elif !W5X00_INTERRUPT && W5X00_CHECK_LINK_TIMEOUT_MS
         //last frame read or link check in ticks       
         static TickType_t last_read_time=(TickType_t)0;
         if(xTaskGetTickCount() - last_read_time >= pdMS_TO_TICKS(W5X00_CHECK_LINK_TIMEOUT_MS)){//if no activity for time defined in W5X00_CHECK_LINK_TIMEOUT_MS
@@ -246,11 +271,37 @@ static void w5x00_task()
             getsockopt(0, SO_RECVBUF, &pack_len);
         }
 
+        #if !W5X00_INTERRUPT
         //let's give a breathe for this task
         W5X00_POLL_SLEEP();
+        #else
+            #if W5X00_CHECK_LINK_TIMEOUT_MS
+            //we want to check cyclink link status
+            notify=ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(W5X00_CHECK_LINK_TIMEOUT_MS));
+            #else
+            //we dont want to check link status. wait infinity
+            ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+            #endif
+        #endif
 
         //check if something in buffer
         getsockopt(0, SO_RECVBUF, &pack_len);
+    }
+}
+
+//check link status
+void w5x00_check_link_status(){
+    //temporary var
+    uint8_t current_link_status=PHY_LINK_OFF;
+
+    //checing link status and setting link up/down
+    if(ctlwizchip(CW_GET_PHYLINK, (void *)&current_link_status) != -1){//iflink status is known
+        if(current_link_status==PHY_LINK_ON && current_link_status!=link_status)//and link is on and changed
+            netif_set_link_up(&g_netif);//then set link ^UP^
+        else if(current_link_status==PHY_LINK_OFF && current_link_status!=link_status)//otherwise if link is down and has beenn changed
+            netif_set_link_down(&g_netif);//set link _DOWN_
+    //save current link status
+    link_status=current_link_status;
     }
 }
 
@@ -286,18 +337,8 @@ void w5x00_get_mac(uint8_t getmac[6]){
     memcpy(getmac,mac,6);
 }
 
-//check link status
-void w5x00_check_link_status(){
-    //temporary var
-    uint8_t current_link_status=PHY_LINK_OFF;
-
-    //checing link status and setting link up/down
-    if(ctlwizchip(CW_GET_PHYLINK, (void *)&current_link_status) != -1){//iflink status is known
-        if(current_link_status==PHY_LINK_ON && current_link_status!=link_status)//and link is on and changed
-            netif_set_link_up(&g_netif);//then set link ^UP^
-        else if(current_link_status==PHY_LINK_OFF && current_link_status!=link_status)//otherwise if link is down and has beenn changed
-            netif_set_link_down(&g_netif);//set link _DOWN_
-    //save current link status
-    link_status=current_link_status;
-    }
+//get initialization status of W5X00
+enum w5x00_state_enum w5x00_get_status()
+{
+    return w5x00_state;
 }

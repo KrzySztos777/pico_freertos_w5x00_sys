@@ -18,6 +18,8 @@
 #include "socket.h"
 #include "w5x00_gpio_irq.h"
 
+#include "pico_freertos_w5x00_sys.h"//w5x00_get_status()
+
 /**
  * ----------------------------------------------------------------------------------------------------
  * Variables
@@ -46,14 +48,39 @@ void wizchip_gpio_interrupt_initialize(uint8_t socket, void (*callback)(void))
 #endif
     ret_val = ctlwizchip(CW_SET_INTRMASK, (void *)&reg_val);
 
+    //set callback
     callback_ptr = callback;
+
+    //prepare PIN_INT
+    gpio_init(PIN_INT);
+    gpio_set_dir(PIN_INT, GPIO_IN);
+    gpio_pull_up(PIN_INT);
+
+    #if !W5X00_DONT_ATTACH_IRQ
     gpio_set_irq_enabled_with_callback(PIN_INT, GPIO_IRQ_EDGE_FALL, true, &wizchip_gpio_interrupt_callback);
+    #endif
 }
 
-static void wizchip_gpio_interrupt_callback(uint gpio, uint32_t events)
+void wizchip_gpio_interrupt_callback(uint gpio, uint32_t events)
 {
-    if (callback_ptr != NULL)
-    {
-        callback_ptr();
+    //check if pin belongs to W5x00 PIN_INT
+    if(gpio==PIN_INT && w5x00_get_status()==W5X00_RUNNING){
+        //rearm interrupt
+        uint8_t sn_ir = 0;
+        ctlsocket(0, CS_GET_INTERRUPT, &sn_ir);
+        if (sn_ir) {
+            ctlsocket(0, CS_CLR_INTERRUPT, &sn_ir);
+        }
+        uint8_t cir = 0;
+        ctlwizchip(CW_GET_INTERRUPT, &cir);
+        if (cir) {
+            ctlwizchip(CW_CLR_INTERRUPT, &cir);
+        }
+
+        //send callback
+        if (callback_ptr != NULL)
+        {
+            callback_ptr();
+        }
     }
 }
