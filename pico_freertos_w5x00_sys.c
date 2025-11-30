@@ -70,14 +70,6 @@ xTaskHandle w5x00TaskHandle=NULL;
  * Functions
  * ----------------------------------------------------------------------------------------------------
  */
-#if W5X00_INTERRUPT
-//function registered as callback inside wizchip_gpio_interrupt_initialize. It wakes up w5x00 task
-static void w5x00_int_handler(){
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    vTaskNotifyGiveFromISR(w5x00TaskHandle, &xHigherPriorityTaskWoken);
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-}
-#endif
 
 void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw)
 {
@@ -100,7 +92,7 @@ static void w5x00_task()
     // uint8_t *pack = malloc(ETHERNET_MTU);
     uint16_t pack_len = 0;
     struct pbuf *p = NULL;
-
+    
     W5X00_SLEEP_MS(pdMS_TO_TICKS(W5X00_INIT_DELAY_MS)); // wait some time. may be usefull
     W5X00_PRINTF("W5x00 init starts...\n");
 
@@ -127,7 +119,7 @@ static void w5x00_task()
     } while (w5x00_state == W5X00_CHIP_NOT_DETECTED || w5x00_state == W5X00_CHIP_INIT_FAILED);
 
     #if !W5X00_DONT_SET_IRQ_CB && W5X00_INTERRUPT
-    wizchip_gpio_interrupt_initialize(0, w5x00_int_handler);
+    W5X00_SET_CB();
     #endif
 
     // Set ethernet chip MAC address
@@ -283,6 +275,15 @@ static void w5x00_task()
         getsockopt(0, SO_RECVBUF, &pack_len);
     }
 }
+
+#if W5X00_INTERRUPT
+//function registered as callback inside W5X00_SET_CB(). It wakes up w5x00 task
+static void w5x00_int_handler(){
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    vTaskNotifyGiveFromISR(w5x00TaskHandle, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+#endif
 
 //check link status
 void w5x00_check_link_status(){

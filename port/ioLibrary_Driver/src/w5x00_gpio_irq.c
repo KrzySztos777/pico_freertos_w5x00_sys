@@ -63,8 +63,11 @@ void wizchip_gpio_interrupt_initialize(uint8_t socket, void (*callback)(void))
 
 void wizchip_gpio_interrupt_callback(uint gpio, uint32_t events)
 {
-    //check if pin belongs to W5x00 PIN_INT
-    if(gpio==PIN_INT && w5x00_get_status()==W5X00_RUNNING){
+    #if W5X00_DONT_SET_IRQ_CB
+    //check if pin belongs to W5x00 PIN_INT. Otherwise it must belonds to it- then nothing to check
+    if(gpio==PIN_INT && w5x00_get_status()==W5X00_RUNNING)
+    #endif
+    {
         //rearm interrupt
         uint8_t sn_ir = 0;
         ctlsocket(0, CS_GET_INTERRUPT, &sn_ir);
