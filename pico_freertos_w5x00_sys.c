@@ -58,7 +58,7 @@ ip4_addr_t gw = IP4(0,0,0,0); // gateaway
 int dhcp = 0;//is dhcp need to be set?
 
 /* user's callback before set netif ^UP^ */
-void (*init_cb)(struct netif netif_arg)=NULL;
+void (*init_cb)(struct netif *netif_arg)=NULL;
 
 /* pack for incoming frame */
 uint8_t pack[ETHERNET_MTU+50];//50 is margin for ethernet, VLAN, etc.
@@ -66,15 +66,19 @@ uint8_t pack[ETHERNET_MTU+50];//50 is margin for ethernet, VLAN, etc.
 /* state of initializing W5x00*/
 enum w5x00_state_enum w5x00_state=W5X00_NOT_STARTED;//it is threaten as atomic 
 
-/*task handle for notifications (interrupt uses it)*/
+/* task handle for notifications (interrupt uses it) */
 xTaskHandle w5x00TaskHandle=NULL;
+
+/* events for link/up or sth else */
+EventGroupHandle_t w5x00_event_group=NULL;
+
 /**
  * ----------------------------------------------------------------------------------------------------
  * Functions
  * ----------------------------------------------------------------------------------------------------
  */
 
-void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw, void (*_init_cb)(struct netif _netif))
+void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw, void (*_init_cb)(struct netif *w5x00_netif))
 {
     //copy argument to local
     dhcp=_dhcp;
@@ -82,6 +86,9 @@ void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw, v
     memcpy(&nm,_nm,sizeof(ip4_addr_t));
     memcpy(&gw,_gw,sizeof(ip4_addr_t));
     init_cb=_init_cb;
+
+    //init eventgroups
+    w5x00_event_group = xEventGroupCreate();
 
     //create task
     xTaskCreate(w5x00_task, W5X00_THREAD_NAME, W5X00_THREAD_STACKSIZE, NULL, W5X00_THREAD_PRIO, &w5x00TaskHandle);
@@ -110,17 +117,20 @@ static void w5x00_task()
 
         if (wizchip_initialize() == 0) {
             w5x00_state = W5X00_CHIP_INIT_FAILED;
+            xEventGroupSetBits(w5x00_event_group, W5X00_EVENT_ERROR);
             W5X00_PRINTF("W5x00 initialized fail!\n");
             vTaskDelay(pdMS_TO_TICKS(100));
         }
-
         else if (wizchip_check() == 0) {
             w5x00_state = W5X00_CHIP_NOT_DETECTED;
+            xEventGroupSetBits(w5x00_event_group, W5X00_EVENT_ERROR);
             W5X00_PRINTF("ACCESS ERR : VERSION of W5x00 chip doesn't match!\n");
             vTaskDelay(pdMS_TO_TICKS(100));
         }
-        else
+        else{
             w5x00_state = W5X00_STARTING_IN_PROGRESS;
+            xEventGroupClearBits(w5x00_event_group, W5X00_EVENT_ERROR);
+        }
     } while (w5x00_state == W5X00_CHIP_NOT_DETECTED || w5x00_state == W5X00_CHIP_INIT_FAILED);
 
     #if !W5X00_DONT_SET_IRQ_CB && W5X00_INTERRUPT
@@ -169,7 +179,7 @@ static void w5x00_task()
 
     //last chance to do something before the whole machine start
     if(init_cb!=NULL)
-        init_cb(g_netif);
+        init_cb(&g_netif);
 
     //try to open MACRAW socket. It should always go
     do {
@@ -190,11 +200,6 @@ static void w5x00_task()
     //lets set ^UP^ netif
     netif_set_up(&g_netif);
 
-    //if no interrupt and link checking is disabled then just set link up and forgot about it
-    #if !W5X00_CHECK_LINK_TIMEOUT_MS
-    netif_set_link_up(&g_netif);
-    #endif
-
     //PRINT MAC INFORMATION FROM EVERY PLACE- TO BE SURE
     // uint8_t getmac[6]={0,0,0,0,0,0};
     // w5x00_get_mac(getmac);
@@ -205,9 +210,16 @@ static void w5x00_task()
     // W5X00_PRINTF("getmac %02X:%02X:%02X:%02X:%02X:%02X\n",getmac[0],getmac[1],getmac[2],getmac[3],getmac[4],getmac[5]);
     //w5x00 setup finished!
 
+    w5x00_state=W5X00_RUNNING;
+    xEventGroupSetBits(w5x00_event_group, W5X00_EVENT_READY);
     W5X00_PRINTF("W5x00 init completed!\n");
 
-    w5x00_state=W5X00_RUNNING;
+    //if no interrupt and link checking is disabled then just set link up and forgot about it
+    #if !W5X00_CHECK_LINK_TIMEOUT_MS
+    netif_set_link_up(&g_netif);
+    xEventGroupSetBits(w5x00_event_group, W5X00_EVENT_LINK_UP);
+    link_status=PHY_LINK_ON;
+    #endif
 
     //first, initial read frame from w5x00
     getsockopt(0, SO_RECVBUF, &pack_len);
@@ -285,6 +297,27 @@ static void w5x00_task()
     }
 }
 
+//wait for event. Mainly used from macro W5X00_WAIT_...
+BaseType_t w5x00_event_wait(EventBits_t wanted_bits, TickType_t timeout_ticks){
+
+    //checking if w5x00 created. If not- w5x00_start hasn't been called
+    configASSERT(w5x00_event_group != NULL);
+
+    EventBits_t bits = xEventGroupWaitBits(
+        w5x00_event_group,
+        wanted_bits,
+        pdFALSE,        // don't clear flags
+        pdTRUE,         // wait for all bits
+        timeout_ticks
+    );
+
+    // Sprawdzenie, czy wszystkie wymagane bity zostały ustawione
+    if ((bits & wanted_bits) == wanted_bits)
+        return pdPASS;
+    else
+        return pdFAIL;
+}
+
 #if W5X00_INTERRUPT
 //function registered as callback inside W5X00_SET_CB(). It wakes up w5x00 task
 static void w5x00_int_handler(){
@@ -300,11 +333,17 @@ void w5x00_check_link_status(){
     uint8_t current_link_status=PHY_LINK_OFF;
 
     //checing link status and setting link up/down
-    if(ctlwizchip(CW_GET_PHYLINK, (void *)&current_link_status) != -1){//iflink status is known
-        if(current_link_status==PHY_LINK_ON && current_link_status!=link_status)//and link is on and changed
+    if(ctlwizchip(CW_GET_PHYLINK, (void *)&current_link_status) != -1){//if link status is known
+        if(current_link_status==PHY_LINK_ON && current_link_status!=link_status){//and link is up and changed
             netif_set_link_up(&g_netif);//then set link ^UP^
-        else if(current_link_status==PHY_LINK_OFF && current_link_status!=link_status)//otherwise if link is down and has beenn changed
+            xEventGroupSetBits(w5x00_event_group, W5X00_EVENT_LINK_UP);
+            xEventGroupClearBits(w5x00_event_group, W5X00_EVENT_LINK_DOWN);
+        }
+        else if(current_link_status==PHY_LINK_OFF && current_link_status!=link_status){//otherwise if link is down and has been changed
             netif_set_link_down(&g_netif);//set link _DOWN_
+            xEventGroupSetBits(w5x00_event_group, W5X00_EVENT_LINK_DOWN);
+            xEventGroupClearBits(w5x00_event_group, W5X00_EVENT_LINK_UP);
+        }
     //save current link status
     link_status=current_link_status;
     }

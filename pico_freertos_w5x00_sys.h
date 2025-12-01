@@ -37,11 +37,25 @@ enum w5x00_state_enum {
 #define W5X00_THREAD_PRIO               (configMAX_PRIORITIES-2)//priority for w5x00 thread
 #define W5X00_SLEEP_MS(ms)              vTaskDelay(pdMS_TO_TICKS(ms))
 
+//events
+#define W5X00_EVENT_READY               (1 << 0)
+#define W5X00_EVENT_ERROR               (1 << 1)
+#define W5X00_EVENT_LINK_UP             (1 << 2)
+#define W5X00_EVENT_LINK_DOWN           (1 << 3)
+
 //helpers
 #define W5X00_SET_CB()                  wizchip_gpio_interrupt_initialize(0, w5x00_int_handler);//use it with option W5X00_DONT_SET_IRQ_CB=1. Then call W5X00_INT_CB(gpio,events) macro INSIDE your interupt
 #define W5X00_INT_CB(gpio,events)       wizchip_gpio_interrupt_callback(gpio,events)//if you have your own interrupt you have to call it inside your handler. call this func inside your int handler if you have set W5X00_DONT_SET_IRQ_CB=1
-#define W5X00_DHCP_ON       1//human-readable argument for w5x00_start
-#define W5X00_DHCP_OFF      0//human-readable argument for w5x00_start
+
+#define W5X00_DHCP_ON                   1//human-readable argument for w5x00_start
+#define W5X00_DHCP_OFF                  0//human-readable argument for w5x00_start
+
+//wait for events macro
+#define W5X00_WAIT_DONE(TICKS)          w5x00_event_wait(W5X00_EVENT_READY | W5X00_EVENT_ERROR, TICKS);//Wait for error or ready
+#define W5X00_WAIT_READY(TICKS)         w5x00_event_wait(W5X00_EVENT_READY, TICKS);//Wait successfull initialization (and read)
+#define W5X00_WAIT_ERROR(TICKS)         w5x00_event_wait(W5X00_EVENT_ERROR, TICKS);//Wait for error- practically can't set to ready anymore
+#define W5X00_WAIT_LINK_UP(TICKS)       w5x00_event_wait(W5X00_EVENT_LINK_UP, TICKS);//Wait for link ^UP^
+#define W5X00_WAIT_LINK_DOWN(TICKS)     w5x00_event_wait(W5X00_EVENT_LINK_DOWN, TICKS);//Wait for link _DOWN_
 
 //we may prevent for setting ip,nm or gw to 0.0.0.0- if there is no dhcp
 #ifndef PREVENT_NULL_IP
@@ -62,14 +76,16 @@ enum w5x00_state_enum {
 #ifdef LWIP_DHCP
 #define w5x00_dhcp()                w5x00_start(W5X00_DHCP_ON, &ip_addr_any, &ip_addr_any, &ip_addr_any)
 #else
-#define w5x00_dhcp()                YOU_HAVE_TO_ENABLE___LWIP_DHCP___IN_LWIOPTS.H_IF_YOU_WANT_USE_DHCP!
+#define w5x00_dhcp()                YOU_HAVE_TO_ENABLE___^LWIP_DHCP^___IN_"LWIOPTS.H"_IF_YOU_WANT_USE_DHCP!
 #endif
 #define w5x00_static(ip,nm,gw)      w5x00_start(W5X00_DHCP_OFF, ip, nm, gw)
 
 typedef void (*init_cb_t)(struct netif *netif_arg);
 
 static void w5x00_task();
-void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw, void (*_init_cb)(struct netif _netif));
+void w5x00_start(int dhcp, ip4_addr_t *ip, ip4_addr_t *nm, ip4_addr_t *gw, void (*init_cb)(struct netif *w5x00_netif));
+
+BaseType_t w5x00_event_wait(EventBits_t wanted_bits, TickType_t timeout_ticks);
 
 void w5x00_check_link_status();
 
