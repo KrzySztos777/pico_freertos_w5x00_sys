@@ -57,6 +57,9 @@ ip4_addr_t nm = IP4(0,0,0,0); // netmask
 ip4_addr_t gw = IP4(0,0,0,0); // gateaway
 int dhcp = 0;//is dhcp need to be set?
 
+/* user's callback before set netif ^UP^ */
+void (*init_cb)(struct netif *netif_arg)=NULL;
+
 /* pack for incoming frame */
 uint8_t pack[ETHERNET_MTU+50];//50 is margin for ethernet, VLAN, etc.
 
@@ -71,13 +74,14 @@ xTaskHandle w5x00TaskHandle=NULL;
  * ----------------------------------------------------------------------------------------------------
  */
 
-void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw)
+void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw, void (*_init_cb)(struct netif *netif_arg))
 {
     //copy argument to local
     dhcp=_dhcp;
     memcpy(&ip,_ip,sizeof(ip4_addr_t));
     memcpy(&nm,_nm,sizeof(ip4_addr_t));
     memcpy(&gw,_gw,sizeof(ip4_addr_t));
+
 
     xTaskCreate(w5x00_task, W5X00_THREAD_NAME, W5X00_THREAD_STACKSIZE, NULL, W5X00_THREAD_PRIO, &w5x00TaskHandle);
 
@@ -161,6 +165,10 @@ static void w5x00_task()
     if(dhcp)
         dhcp_start(&g_netif);
     #endif
+
+    //last chance to do something before the whole machine start
+    if(init_cb!=NULL)
+        init_cb(&g_netif);
 
     //try to open MACRAW socket. It should always go
     do {

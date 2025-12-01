@@ -66,8 +66,10 @@ enum w5x00_state_enum {
 #endif
 #define w5x00_static(ip,nm,gw)      w5x00_start(W5X00_DHCP_OFF, ip, nm, gw)
 
+typedef void (*init_cb_t)(struct netif *netif_arg);
+
 static void w5x00_task();
-void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw);
+void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw, void (*_init_cb)(struct netif *netif_arg));
 
 void w5x00_check_link_status();
 
