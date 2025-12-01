@@ -69,14 +69,16 @@ enum w5x00_state_enum {
 typedef void (*init_cb_t)(struct netif *netif_arg);
 
 static void w5x00_task();
-void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw, void (*_init_cb)(struct netif *netif_arg));
+void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw, void (*_init_cb)(struct netif _netif));
 
 void w5x00_check_link_status();
 
 void w5x00_set_mac(uint8_t mac[6]);
 void w5x00_get_mac(uint8_t mac[6]);
 
-enum w5x00_state_enum w5x00_get_status();
+struct netif* w5x00_get_netif(struct netif *netif_ptr);
+
+enum w5x00_state_enum w5x00_get_state(enum w5x00_state_enum *state_ptr);
 
 #if W5X00_INTERRUPT
 static void w5x00_int_handler();

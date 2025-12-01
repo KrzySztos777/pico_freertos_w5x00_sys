@@ -65,7 +65,7 @@ void wizchip_gpio_interrupt_callback(uint gpio, uint32_t events)
 {
     #if W5X00_DONT_SET_IRQ_CB
     //check if pin belongs to W5x00 PIN_INT. Otherwise it must belonds to it- then nothing to check
-    if(gpio==PIN_INT && w5x00_get_status()==W5X00_RUNNING)
+    if(gpio==PIN_INT && w5x00_get_state()==W5X00_RUNNING)
     #endif
     {
         //rearm interrupt

@@ -58,7 +58,7 @@ ip4_addr_t gw = IP4(0,0,0,0); // gateaway
 int dhcp = 0;//is dhcp need to be set?
 
 /* user's callback before set netif ^UP^ */
-void (*init_cb)(struct netif *netif_arg)=NULL;
+void (*init_cb)(struct netif netif_arg)=NULL;
 
 /* pack for incoming frame */
 uint8_t pack[ETHERNET_MTU+50];//50 is margin for ethernet, VLAN, etc.
@@ -74,15 +74,16 @@ xTaskHandle w5x00TaskHandle=NULL;
  * ----------------------------------------------------------------------------------------------------
  */
 
-void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw, void (*_init_cb)(struct netif *netif_arg))
+void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw, void (*_init_cb)(struct netif _netif))
 {
     //copy argument to local
     dhcp=_dhcp;
     memcpy(&ip,_ip,sizeof(ip4_addr_t));
     memcpy(&nm,_nm,sizeof(ip4_addr_t));
     memcpy(&gw,_gw,sizeof(ip4_addr_t));
+    init_cb=_init_cb;
 
-
+    //create task
     xTaskCreate(w5x00_task, W5X00_THREAD_NAME, W5X00_THREAD_STACKSIZE, NULL, W5X00_THREAD_PRIO, &w5x00TaskHandle);
 
     //w5x00 has been started
@@ -168,7 +169,7 @@ static void w5x00_task()
 
     //last chance to do something before the whole machine start
     if(init_cb!=NULL)
-        init_cb(&g_netif);
+        init_cb(g_netif);
 
     //try to open MACRAW socket. It should always go
     do {
@@ -194,8 +195,6 @@ static void w5x00_task()
     netif_set_link_up(&g_netif);
     #endif
 
-    W5X00_PRINTF("W5x00 init completed!\n");
-
     //PRINT MAC INFORMATION FROM EVERY PLACE- TO BE SURE
     // uint8_t getmac[6]={0,0,0,0,0,0};
     // w5x00_get_mac(getmac);
@@ -205,6 +204,8 @@ static void w5x00_task()
     // getSHAR(getmac);
     // W5X00_PRINTF("getmac %02X:%02X:%02X:%02X:%02X:%02X\n",getmac[0],getmac[1],getmac[2],getmac[3],getmac[4],getmac[5]);
     //w5x00 setup finished!
+
+    W5X00_PRINTF("W5x00 init completed!\n");
 
     w5x00_state=W5X00_RUNNING;
 
@@ -341,8 +342,16 @@ void w5x00_get_mac(uint8_t getmac[6]){
     memcpy(getmac,mac,6);
 }
 
-//get initialization status of W5X00
-enum w5x00_state_enum w5x00_get_status()
+struct netif* w5x00_get_netif(struct netif *netif_ptr){
+    if(netif_ptr!=NULL)
+        netif_ptr=&g_netif;
+    return &g_netif;
+}
+
+//get initialization state of W5X00
+enum w5x00_state_enum w5x00_get_state(enum w5x00_state_enum *state_ptr)
 {
+    if(state_ptr!=NULL)
+        *state_ptr=w5x00_state;
     return w5x00_state;
 }
