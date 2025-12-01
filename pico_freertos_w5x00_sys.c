@@ -78,7 +78,7 @@ EventGroupHandle_t w5x00_event_group=NULL;
  * ----------------------------------------------------------------------------------------------------
  */
 
-void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw, w5x00_init_cb_t _init_cb)
+void w5x00_start(int _dhcp, const ip4_addr_t *_ip, const ip4_addr_t *_nm, const ip4_addr_t *_gw, const w5x00_init_cb_t _init_cb)
 {
     //copy argument to local
     dhcp=_dhcp;
@@ -158,9 +158,9 @@ static void w5x00_task()
         //we may prevent for setting ip,nm or gw to 0.0.0.0- if there is no dhcp
         #if PREVENT_NULL_IP
         if(ip4_addr_isany(&ip) || ip4_addr_isany(&nm) || ip4_addr_isany(&gw)){
-            ip4addr_aton(DEFAULT_STATIC_IP,&ip);
-            ip4addr_aton(DEFAULT_STATIC_NM,&nm);
-            ip4addr_aton(DEFAULT_STATIC_GW,&gw);
+            ip4addr_aton(W5X00_DEFAULT_IP,&ip);
+            ip4addr_aton(W5X00_DEFAULT_NM,&nm);
+            ip4addr_aton(W5X00_DEFAULT_GW,&gw);
         }
         #endif
     }
@@ -210,7 +210,7 @@ static void w5x00_task()
     // W5X00_PRINTF("getmac %02X:%02X:%02X:%02X:%02X:%02X\n",getmac[0],getmac[1],getmac[2],getmac[3],getmac[4],getmac[5]);
     //w5x00 setup finished!
 
-    w5x00_state=W5X00_RUNNING;
+    w5x00_state=W5X00_READY;
     xEventGroupSetBits(w5x00_event_group, W5X00_EVENT_READY);
     W5X00_PRINTF("W5x00 init completed!\n");
 
@@ -327,8 +327,16 @@ static void w5x00_int_handler(){
 }
 #endif
 
+//get link status
+uint8_t w5x00_get_link_status(uint8_t *_link_status)
+{
+    if(_link_status!=NULL)
+        *_link_status=link_status;
+    return link_status;
+}
+
 //check link status
-void w5x00_check_link_status(){
+static void w5x00_check_link_status(){
     //temporary var
     uint8_t current_link_status=PHY_LINK_OFF;
 
@@ -350,7 +358,7 @@ void w5x00_check_link_status(){
 }
 
 //unthreadsafe function to set mac address. Best option is call it only once at startup
-void w5x00_set_mac(uint8_t setmac[6]){
+void w5x00_set_mac(const uint8_t setmac[6]){
     
     //if NULL or {0,0,0,0,0,0} then set default
     if(setmac==NULL || !memcmp(setmac,(uint8_t[6]){0,0,0,0,0,0},6)){
@@ -381,6 +389,7 @@ void w5x00_get_mac(uint8_t getmac[6]){
     memcpy(getmac,mac,6);
 }
 
+//get pointer to w5x00 netif
 struct netif* w5x00_get_netif(struct netif *netif_ptr){
     if(netif_ptr!=NULL)
         netif_ptr=&g_netif;
