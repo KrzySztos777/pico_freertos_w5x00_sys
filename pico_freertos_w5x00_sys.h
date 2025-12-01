@@ -74,11 +74,11 @@ enum w5x00_state_enum {
 
 //shortcut for setting only static/dhcp
 #ifdef LWIP_DHCP
-#define w5x00_dhcp()                w5x00_start(W5X00_DHCP_ON, &ip_addr_any, &ip_addr_any, &ip_addr_any)
+#define w5x00_dhcp()                w5x00_start(W5X00_DHCP_ON, &ip_addr_any, &ip_addr_any, &ip_addr_any, NULL)
 #else
 #define w5x00_dhcp()                YOU_HAVE_TO_ENABLE___^LWIP_DHCP^___IN_"LWIOPTS.H"_IF_YOU_WANT_USE_DHCP!
 #endif
-#define w5x00_static(ip,nm,gw)      w5x00_start(W5X00_DHCP_OFF, ip, nm, gw)
+#define w5x00_static(ip,nm,gw)      w5x00_start(W5X00_DHCP_OFF, ip, nm, gw, NULL)
 
 typedef void (*w5x00_init_cb_t)(struct netif *netif_ptr);
 
