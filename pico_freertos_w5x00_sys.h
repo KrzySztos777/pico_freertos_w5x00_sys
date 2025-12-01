@@ -11,13 +11,13 @@
 #define IP4(a, b, c, d) ((ip4_addr_t)IPADDR4_INIT_BYTES(a, b, c, d))
 
 enum w5x00_state_enum {
-    W5X00_NOT_STARTED = 0,
-    W5X00_STARTING_IN_PROGRESS,
-    W5X00_CHIP_INIT_FAILED,//it is critical. W5x00 initialization failed
-    W5X00_CHIP_NOT_DETECTED,//it is critical. No W5x00 chip detected!
-    W5X00_MACRAW_SOCKET_FAILED,//it is critical. Can't open socket on W5x00 for lwip communication
-    W5X00_RUNNING,
-    W5X00_OK = W5X00_RUNNING
+    W5X00_NOT_STARTED = 0,//Init function w5x00_start has not been called.
+    W5X00_STARTING_IN_PROGRESS,//Initializing is started and in progress...
+    W5X00_CHIP_INIT_FAILED,//Critical error. W5x00 initialization failed!
+    W5X00_CHIP_NOT_DETECTED,//Critical error. NW5x00 chip has not been detected!
+    W5X00_MACRAW_SOCKET_FAILED,//Critical error. Can't open hardware socket on W5x00 for lwip communication!
+    W5X00_RUNNING,//Succesfully initialized and ready!
+    W5X00_OK = W5X00_RUNNING//Succesfully initialized and ready!
 };
 
 //performance options
@@ -80,10 +80,10 @@ enum w5x00_state_enum {
 #endif
 #define w5x00_static(ip,nm,gw)      w5x00_start(W5X00_DHCP_OFF, ip, nm, gw)
 
-typedef void (*init_cb_t)(struct netif *netif_arg);
+typedef void (*w5x00_init_cb_t)(struct netif *netif_ptr);
 
 static void w5x00_task();
-void w5x00_start(int dhcp, ip4_addr_t *ip, ip4_addr_t *nm, ip4_addr_t *gw, void (*init_cb)(struct netif *w5x00_netif));
+void w5x00_start(int dhcp, ip4_addr_t *ip, ip4_addr_t *nm, ip4_addr_t *gw, w5x00_init_cb_t init_cb);
 
 BaseType_t w5x00_event_wait(EventBits_t wanted_bits, TickType_t timeout_ticks);
 

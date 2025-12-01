@@ -36,17 +36,17 @@ static void (*callback_ptr)(void);
 void wizchip_gpio_interrupt_initialize(uint8_t socket, void (*callback)(void))
 {
     uint16_t reg_val;
-    int ret_val;
+    // int ret_val;
 
     reg_val = (SIK_CONNECTED | SIK_DISCONNECTED | SIK_RECEIVED | SIK_TIMEOUT); // except SendOK
-    ret_val = ctlsocket(socket, CS_SET_INTMASK, (void *)&reg_val);
+    /*ret_val = */ctlsocket(socket, CS_SET_INTMASK, (void *)&reg_val);
 
 #if (_WIZCHIP_ == W5100S)
     reg_val = (1 << socket);
 #elif (_WIZCHIP_ == W5500)
     reg_val = ((1 << socket) << 8);
 #endif
-    ret_val = ctlwizchip(CW_SET_INTRMASK, (void *)&reg_val);
+    /*ret_val = */ctlwizchip(CW_SET_INTRMASK, (void *)&reg_val);
 
     //set callback
     callback_ptr = callback;

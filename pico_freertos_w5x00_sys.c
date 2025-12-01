@@ -78,7 +78,7 @@ EventGroupHandle_t w5x00_event_group=NULL;
  * ----------------------------------------------------------------------------------------------------
  */
 
-void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw, void (*_init_cb)(struct netif *w5x00_netif))
+void w5x00_start(int _dhcp, ip4_addr_t *_ip, ip4_addr_t *_nm, ip4_addr_t *_gw, w5x00_init_cb_t _init_cb)
 {
     //copy argument to local
     dhcp=_dhcp;
