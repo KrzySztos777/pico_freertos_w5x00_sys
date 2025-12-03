@@ -36,7 +36,7 @@
  * Set to @c NULL to disable all debug prints.
  */
 #ifndef W5X00_PRINTF
-#define W5X00_PRINTF printf
+#define W5X00_PRINTF NULL
 #endif
 
 /**
@@ -45,7 +45,7 @@
  * Useful for hardware stabilization before starting network activity.
  */
 #ifndef W5X00_INIT_DELAY_MS
-#define W5X00_INIT_DELAY_MS 1500
+#define W5X00_INIT_DELAY_MS 0
 #endif
 
 /**
