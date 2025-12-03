@@ -199,6 +199,10 @@ static void w5x00_task()
     //last chance to do something before the whole machine start
     if(init_cb!=NULL)
         init_cb(&g_netif);
+    
+    //manually trigger status callback. link will be later
+    if ((&g_netif)->status_callback)
+        (&g_netif)->status_callback(&g_netif);
 
     //PRINT MAC INFORMATION FROM EVERY PLACE- TO BE SURE
     // uint8_t getmac[6]={0,0,0,0,0,0};

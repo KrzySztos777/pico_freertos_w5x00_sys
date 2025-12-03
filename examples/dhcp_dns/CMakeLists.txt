@@ -26,7 +26,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     FreeRTOS-Kernel-Heap4
     )
 
-# Inclue directories
+# Include directories
 target_include_directories(${PROJECT_NAME} PRIVATE
     .
     )

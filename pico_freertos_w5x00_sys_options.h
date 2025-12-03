@@ -1,7 +1,13 @@
 #ifndef PICO_FREERTOS_W5X00_SYS_OPTIONS_H
 #define PICO_FREERTOS_W5X00_SYS_OPTIONS_H
 
-//below are all default options copy&paste friendly
+//if you have this file then it will be included as a first
+#if __has_include("w5x00opts.h")
+#include "w5x00opts.h"
+#endif
+
+//below are all default options copy&paste friendly- put it in "w5x00opts.h" file
+//OR: you can set your defaults options right below!
 
 // //performance options
 // #define W5X00_PRINTF                    printf//for debugging- may be set to NULL if you don't want to see it
@@ -36,7 +42,7 @@
  * Set to @c NULL to disable all debug prints.
  */
 #ifndef W5X00_PRINTF
-#define W5X00_PRINTF NULL
+#define W5X00_PRINTF(...) do { } while(0)
 #endif
 
 /**
