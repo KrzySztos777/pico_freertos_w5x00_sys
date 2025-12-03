@@ -11,6 +11,14 @@ project(pico_freertos_w5x00_sys C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
+# Set board
+#set(BOARD_NAME WIZnet_Ethernet_HAT)
+# set(BOARD_NAME W5100S_EVB_PICO)
+set(BOARD_NAME W5500_EVB_PICO)
+#set(BOARD_NAME W55RP20_EVB_PICO)
+#set(BOARD_NAME W5100S_EVB_PICO2)
+#set(BOARD_NAME W5500_EVB_PICO2)
+
 # Initialize the SDK
 pico_sdk_init()
 
@@ -61,7 +69,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib) #ioLibrary_Driver
 
 # Hardware-specific examples in subdirectories:
 if(PROJECT_IS_TOP_LEVEL)
-    # add_subdirectory(examples)
+    add_subdirectory(examples)
 endif()
 
 # Add source files

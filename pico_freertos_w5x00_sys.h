@@ -110,8 +110,10 @@ typedef void (*w5x00_init_cb_t)(struct netif *netif_ptr);
  *        then W5X00_DEFAULT_GW is set (if PREVENT_NULL_IP option is set)
  *
  * @param init_cb
- *        Optional initialization callback invoked once the driver reaches
- *        the READY state. The callback receives a pointer to the associated
+ *        Optional initialization callback invoked once 
+ *        Between netif_set_up and netif_set_link_up.
+ *        Last chance to do something lwip machine will start.
+ *        Some of them may be unthreadsafe- like set callbacks.
  *        @c struct netif. Pass NULL to disable the callback.
  */
 void w5x00_start(int dhcp, const ip4_addr_t *ip, const ip4_addr_t *nm, const ip4_addr_t *gw, const w5x00_init_cb_t init_cb);

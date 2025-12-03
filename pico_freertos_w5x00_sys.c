@@ -171,16 +171,6 @@ static void w5x00_task()
     g_netif.name[1] = '0';
     netif_set_default(&g_netif);
 
-    //start dhcp if needed and is available
-    #if LWIP_DHCP
-    if(dhcp)
-        dhcp_start(&g_netif);
-    #endif
-
-    //last chance to do something before the whole machine start
-    if(init_cb!=NULL)
-        init_cb(&g_netif);
-
     //try to open MACRAW socket. It should always go
     do {
         retval = socket(0, Sn_MR_MACRAW, 0, 0x00);
@@ -199,6 +189,16 @@ static void w5x00_task()
 
     //lets set ^UP^ netif
     netif_set_up(&g_netif);
+
+    //start dhcp if needed and is available
+    #if LWIP_DHCP
+    if(dhcp)
+        dhcp_start(&g_netif);
+    #endif
+
+    //last chance to do something before the whole machine start
+    if(init_cb!=NULL)
+        init_cb(&g_netif);
 
     //PRINT MAC INFORMATION FROM EVERY PLACE- TO BE SURE
     // uint8_t getmac[6]={0,0,0,0,0,0};
@@ -228,16 +228,19 @@ static void w5x00_task()
     while (1)
     {
         #if W5X00_INTERRUPT && W5X00_CHECK_LINK_TIMEOUT_MS
-        static uint32_t notify=0;//set to 0 to start link at least once
-        if(!notify)
+        static uint32_t notify=0;//notify incoming
+        if(!notify || link_status==PHY_LINK_OFF)
             w5x00_check_link_status();
         //if interrupts not enabled and checking link status is on
         #elif !W5X00_INTERRUPT && W5X00_CHECK_LINK_TIMEOUT_MS
         //last frame read or link check in ticks       
         static TickType_t last_read_time=(TickType_t)0;
         if(xTaskGetTickCount() - last_read_time >= pdMS_TO_TICKS(W5X00_CHECK_LINK_TIMEOUT_MS)){//if no activity for time defined in W5X00_CHECK_LINK_TIMEOUT_MS
-            w5x00_check_link_status();
-            last_read_time=xTaskGetTickCount();
+            do{
+                w5x00_check_link_status();
+                last_read_time=xTaskGetTickCount();
+                W5X00_POLL_SLEEP();
+            }while(link_status==PHY_LINK_OFF);
         }
         #endif
         
