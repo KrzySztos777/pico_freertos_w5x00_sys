@@ -8,6 +8,7 @@
 #include "w5x00opts.h"//our options must be in ANY header file- not in *.c file
 #include "pico_freertos_w5x00_sys.h"
 
+
 //dns resolve headers
 #include "lwip/netdb.h"
 #include "lwip/ip_addr.h"
@@ -16,6 +17,10 @@
 #include "lwip/dhcp.h"
 #include "lwip/dns.h"
 #include <stdio.h>
+
+//lwipperf
+#include "lwip/apps/lwiperf.h"
+#include "hardware/clocks.h"
 
 void link_callback(struct netif *netif)
 {
@@ -66,6 +71,8 @@ void init_callback(struct netif *netif){
         ipaddr_aton("1.1.1.1", &dnsserver);
         dns_setserver(1, &dnsserver);
     }
+
+    lwiperf_start_tcp_server_default(NULL, NULL);
 }
 
 
@@ -78,9 +85,9 @@ void led_task()
     
     while (true) {
         gpio_put(LED_PIN, 1);
-        vTaskDelay(blink / portTICK_PERIOD_MS);
+        vTaskDelay(pdMS_TO_TICKS(blink));
         gpio_put(LED_PIN, 0);
-        vTaskDelay(blink / portTICK_PERIOD_MS);
+        vTaskDelay(pdMS_TO_TICKS(blink));
     }
 }
 
@@ -119,6 +126,7 @@ void test_task()
 int main(){
 
     stdio_init_all();
+    // set_sys_clock_khz(300000, true);  // 300 MHz    
 
     xTaskCreate(led_task, "LED_Task", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
     xTaskCreate(test_task, "test_Task", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
@@ -128,7 +136,7 @@ int main(){
     w5x00_set_mac(mac);
 
     //set IP adress
-    ip4_addr_t ip = IP4(192,168,0,58); // ip address
+    ip4_addr_t ip = IP4(192,168,0,13); // ip address
     ip4_addr_t nm = IP4(255,255,255,0);// netmask
     ip4_addr_t gw = IP4(192,168,0,1);  // gateaway
     

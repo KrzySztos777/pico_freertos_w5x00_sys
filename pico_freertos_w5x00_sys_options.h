@@ -90,7 +90,7 @@
  * @brief SPI bus clock speed used for the W5X00.
  */
 #ifndef W5X00_SPI_SPEED
-#define W5X00_SPI_SPEED (5000 * 1000)
+#define W5X00_SPI_SPEED (40 * 1000 * 1000)
 #endif
 
 /* ----------------------------------------------------------------------------------------------------

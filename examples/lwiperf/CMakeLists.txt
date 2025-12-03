@@ -1,27 +1,44 @@
-set(TARGET_NAME w5x00_lwiperf)
-set(LWIP_PATH ${PICO_SDK_PATH}/lib/lwip)
-set(TARGET_FILES    
-    ${TARGET_NAME}.c
-    ${LWIP_PATH}/src/apps/lwiperf/lwiperf.c
+cmake_minimum_required(VERSION 3.13)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+
+# Set project name
+project(lwipperf C CXX ASM)
+
+# It is from Freertos-example-pico-sdk-2
+add_compile_options(-Wall
+    -Wno-format          # int != int32_t as far as the compiler is concerned because gcc has int32_t as long int
+    -Wno-unused-function # we have some for the docs that aren't called
+    )
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    add_compile_options(-Wno-maybe-uninitialized)
+endif()
+
+# Define the main executable
+add_executable(${PROJECT_NAME}
+    main.c
+    ${PICO_SDK_PATH}/lib/lwip/src/apps/lwiperf/lwiperf.c
+)
+
+# Linking libraries
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    pico_stdlib
+    pico_freertos_w5x00_sys
+    FreeRTOS-Kernel-Heap4
     )
 
-add_executable(${TARGET_NAME} ${TARGET_FILES})
+# Include directories
+target_include_directories(${PROJECT_NAME} PRIVATE
+    .
+    )
 
-# This is required to include lwipopts.h
-target_include_directories(pico_lwip INTERFACE        
-        ${PORT_DIR}/lwip
-        )
+pico_enable_stdio_usb(${PROJECT_NAME} 1)
+pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
-target_link_libraries(${TARGET_NAME} PRIVATE
-        pico_stdlib
-        hardware_spi
-        hardware_dma
-        ETHERNET_FILES
-        IOLIBRARY_FILES
-        LWIP_FILES
-        )
+pico_add_extra_outputs(${PROJECT_NAME})
 
-pico_enable_stdio_usb(${TARGET_NAME} 1)
-pico_enable_stdio_uart(${TARGET_NAME} 0)
-
-pico_add_extra_outputs(${TARGET_NAME})
+#mkdir build
+#cd ./build
+#rm -rf ./*
+#cmake .. -DCMAKE_ASM_COMPILER=/usr/bin/arm-none-eabi-gcc -DPICO_PLATFORM=rp2350 -DPICO_BOARD=pico2
+#cmake --build .
