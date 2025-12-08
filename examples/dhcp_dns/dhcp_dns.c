@@ -5,7 +5,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-// #include "w5x00opts.h"//commented let's use default options
+// #include "w5x00opts.h"//commented. let's use default options
 #include "pico_freertos_w5x00_sys.h"
 
 //dns resolve headers

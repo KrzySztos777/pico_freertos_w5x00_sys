@@ -1,34 +1,37 @@
-set(TARGET_NAME w5x00_loopback)
-set(LWIP_PATH ${PICO_SDK_PATH}/lib/lwip)
-set(TARGET_FILES    
-    w5x00_loopback.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/tcp_echoserver/tcp_echoserver.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/tcp_echoclient/tcp_echoclient.c
+cmake_minimum_required(VERSION 3.13)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+
+# Set project name
+project(loopback C CXX ASM)
+
+# It is from Freertos-example-pico-sdk-2
+add_compile_options(-Wall
+    -Wno-format          # int != int32_t as far as the compiler is concerned because gcc has int32_t as long int
+    -Wno-unused-function # we have some for the docs that aren't called
+    )
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    add_compile_options(-Wno-maybe-uninitialized)
+endif()
+
+# Define the main executable
+add_executable(${PROJECT_NAME}
+    loopback.c
+)
+
+# Linking libraries
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    pico_stdlib
+    pico_freertos_w5x00_sys
+    FreeRTOS-Kernel-Heap4
     )
 
-add_executable(${TARGET_NAME} ${TARGET_FILES})
+# Include directories
+target_include_directories(${PROJECT_NAME} PRIVATE
+    .
+    )
 
-target_include_directories(w5x00_loopback PUBLIC
-        ${LWIP_PATH}/src/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/tcp_echoserver
-        ${CMAKE_CURRENT_SOURCE_DIR}/tcp_echoclient
-        )
+pico_enable_stdio_usb(${PROJECT_NAME} 1)
+pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
-# This is required to include lwipopts.h
-target_include_directories(pico_lwip INTERFACE        
-        ${PORT_DIR}/lwip        
-        )
-
-target_link_libraries(${TARGET_NAME} PRIVATE
-        pico_stdlib
-        hardware_spi
-        hardware_dma
-        ETHERNET_FILES
-        IOLIBRARY_FILES
-        LWIP_FILES
-        )
-
-pico_enable_stdio_usb(${TARGET_NAME} 1)
-pico_enable_stdio_uart(${TARGET_NAME} 0)
-
-pico_add_extra_outputs(${TARGET_NAME})
+pico_add_extra_outputs(${PROJECT_NAME})

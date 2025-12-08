@@ -5,14 +5,11 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "w5x00opts.h"//let's use this- our options must be in ANY header file- not in *.c file
+// #include "w5x00opts.h"//commented. let's use default options
 #include "pico_freertos_w5x00_sys.h"
 
 //get info if dhcp is on - procedure
 #include "lwip/netif.h"
-
-//lwipperf
-#include "lwip/apps/lwiperf.h"
 
 void link_callback(struct netif *netif)
 {
@@ -61,39 +58,9 @@ void led_task()
     }
 }
 
-//lwiperf callback
-void lwiperf_callback(void *arg,
-                    enum lwiperf_report_type report_type,
-                    const ip_addr_t *local_addr, u16_t local_port,
-                    const ip_addr_t *remote_addr, u16_t remote_port,
-                    u32_t bytes_transferred, u32_t ms_duration,
-                    u32_t bandwidth_kbps)
-    {
-    (void)arg;//unused
-
-    printf("LWIPERF REPORT CALLBACK:\n");
-
-    char ip_local[16], ip_remote[16];
-
-    ipaddr_ntoa_r(local_addr,  ip_local,  sizeof(ip_local));
-    ipaddr_ntoa_r(remote_addr, ip_remote, sizeof(ip_remote));
-
-    printf("  Local address:  %s:%u\n",  ip_local,  local_port);
-    printf("  Remote address: %s:%u\n",  ip_remote, remote_port);
-
-    printf("  Transfer:          %.2f MBytes\n", bytes_transferred / (1024.0 * 1024.0));//iperf cmd format
-    printf("  Duration:          %.4f sec\n", ms_duration / 1000.0);//iperf cmd format (time may be different because uC is less accurate)
-    printf("  Bandwidth:         %.2f Mbits/sec\n", bandwidth_kbps / 1000.0);//iperf cmd format
-
-    blink=100;//blink faster- success is the master!
-}
-
 void init_callback(struct netif *netif){
     netif_set_status_callback(netif, status_callback);
     netif_set_link_callback(netif, link_callback);
-
-    //THIS IS THE HEART OF THIS EXAMPLE (ofc lwiperf_callback may be set to NULL):
-    lwiperf_start_tcp_server_default(lwiperf_callback, NULL);
 }
 
 int main(){

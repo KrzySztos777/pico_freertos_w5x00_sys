@@ -5,9 +5,9 @@
 // #define W5X00_PRINTF                    printf//for debugging- may be set to NULL if you don't want to see it
 // #define W5X00_INIT_DELAY_MS             1500//delay in ms at the beginning of the task. Just.
 // #define W5X00_INTERRUPT                 1//if enabled then SPI is not polled but it waits for GPIO interrupt
-#define W5X00_USE_SPI_DMA                  1//set DMA if SPI is used
+#define W5X00_USE_SPI_DMA                  1//0//set DMA if SPI is used
 // #define W5X00_CHECK_LINK_TIMEOUT_MS     100//if no traffic for this time then check link status. if 0 then link always up
-#define W5X00_SPI_SPEED                    (60 * 1000 * 1000)//spi speed
+#define W5X00_SPI_SPEED                 (60000 * 1000)//spi speed
 
 // //task options
 // #define W5X00_POLL_SLEEP()              taskYIELD() //function during SPI polling. taskYIELD fastest. May be also vTaskDelay(1). IMPORTANT: with very high priority of this task vTaskDelay(1) is recomennded to avoid starving of another ones
