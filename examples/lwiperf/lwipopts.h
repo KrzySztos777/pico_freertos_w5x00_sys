@@ -13,23 +13,23 @@
 // Konfiguracja TCP
 #define LWIP_TCP                       1
 #define TCP_MSS                        (1500 /*mtu*/ - 20 /*iphdr*/ - 20 /*tcphhr*/)
-#define TCP_SND_BUF                    (16 * TCP_MSS)
-#define TCP_WND                        (16 * TCP_MSS)
+#define TCP_SND_BUF                    (4 * TCP_MSS)
+#define TCP_WND                        (4 * TCP_MSS)
 
 // Konfiguracja wątku tcpip
 #define LWIP_TCPIP_CORE_LOCKING        0
 #define TCPIP_THREAD_NAME              "tcpip_thread"
 #define TCPIP_THREAD_STACKSIZE         4096
 #define TCPIP_THREAD_PRIO              (configMAX_PRIORITIES-2)
-#define TCPIP_MBOX_SIZE                128
+#define TCPIP_MBOX_SIZE                32
 
-#define MEMP_NUM_TCP_SEG        128
+#define MEMP_NUM_TCP_SEG               32
 
 // Konfiguracja pamięci kolejkowej
-#define DEFAULT_TCP_RECVMBOX_SIZE      128
-#define DEFAULT_UDP_RECVMBOX_SIZE      128
-#define DEFAULT_ACCEPTMBOX_SIZE        128
-#define DEFAULT_RAW_RECVMBOX_SIZE      128
+#define DEFAULT_TCP_RECVMBOX_SIZE      32
+#define DEFAULT_UDP_RECVMBOX_SIZE      32
+#define DEFAULT_ACCEPTMBOX_SIZE        32
+#define DEFAULT_RAW_RECVMBOX_SIZE      32
 
 // Obsługa platformowego assert/logowania
 #define LWIP_DEBUG                     1
@@ -40,7 +40,7 @@
 #define ETH_PAD_SIZE                   0//MUST BE ZERO
 
 // Bufory PBUF_POOL (domyślne wartości, możesz zmienić później)
-#define PBUF_POOL_SIZE                 128
+#define PBUF_POOL_SIZE                 32
 #define PBUF_POOL_BUFSIZE              1542
 
 // Inne opcje protokołów – wyłączone, możesz włączyć później

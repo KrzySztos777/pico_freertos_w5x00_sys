@@ -3,7 +3,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
 # Set project name
-project(lwipperf C CXX ASM)
+project(lwiperf C CXX ASM)
 
 # It is from Freertos-example-pico-sdk-2
 add_compile_options(-Wall
@@ -16,8 +16,8 @@ endif()
 
 # Define the main executable
 add_executable(${PROJECT_NAME}
-    main.c
-    ${PICO_SDK_PATH}/lib/lwip/src/apps/lwiperf/lwiperf.c
+    lwiperf.c
+    ${PICO_SDK_PATH}/lib/lwip/src/apps/lwiperf/lwiperf.c #lwiperf necessary source file
 )
 
 # Linking libraries
@@ -36,9 +36,3 @@ pico_enable_stdio_usb(${PROJECT_NAME} 1)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
 pico_add_extra_outputs(${PROJECT_NAME})
-
-#mkdir build
-#cd ./build
-#rm -rf ./*
-#cmake .. -DCMAKE_ASM_COMPILER=/usr/bin/arm-none-eabi-gcc -DPICO_PLATFORM=rp2350 -DPICO_BOARD=pico2
-#cmake --build .

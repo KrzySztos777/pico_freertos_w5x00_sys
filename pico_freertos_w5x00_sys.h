@@ -18,13 +18,13 @@
 #define IP4(a, b, c, d) ((ip4_addr_t)IPADDR4_INIT_BYTES(a, b, c, d))
 
 //simplest static ip start- just call "w5x00_static(ip,nm,gw);" with arguments a pointer to ip addresses
-#define w5x00_static(ip,nm,gw)      w5x00_start(W5X00_DHCP_OFF, ip, nm, gw, NULL)
+#define w5x00_static(ip,nm,gw,cb)      w5x00_start(W5X00_DHCP_OFF, ip, nm, gw, cb)
 
 //simplest start with dhcp- just call "w5x00_dhcp();"
 #ifdef LWIP_DHCP
-#define w5x00_dhcp()                w5x00_start(W5X00_DHCP_ON, &ip_addr_any, &ip_addr_any, &ip_addr_any, NULL)
+#define w5x00_dhcp(cb)                w5x00_start(W5X00_DHCP_ON, &ip_addr_any, &ip_addr_any, &ip_addr_any, cb)
 #else
-#define w5x00_dhcp()                YOU_HAVE_TO_ENABLE___^LWIP_DHCP^___IN_"LWIOPTS.H"_IF_YOU_WANT_USE_DHCP!
+#define w5x00_dhcp(cb)                YOU_HAVE_TO_ENABLE___^LWIP_DHCP^___IN_"LWIOPTS.H"_IF_YOU_WANT_USE_DHCP!
 #endif
 
 //dhcp on/off for better clarity
@@ -32,7 +32,7 @@
 #define W5X00_DHCP_OFF                  0//human-readable argument for w5x00_start
 
 //wait for events macros
-#define W5X00_WAIT_DONE(TICKS)          w5x00_event_wait(W5X00_EVENT_READY | W5X00_EVENT_ERROR, TICKS);//Wait for error or ready
+#define W5X00_WAIT_DONE(TICKS)          w5x00_event_wait(W5X00_EVENT_DONE, TICKS);//Wait for error or ready
 #define W5X00_WAIT_READY(TICKS)         w5x00_event_wait(W5X00_EVENT_READY, TICKS);//Wait for successfull initialization (and ready)
 #define W5X00_WAIT_ERROR(TICKS)         w5x00_event_wait(W5X00_EVENT_ERROR, TICKS);//Wait for error- practically can't set to ready after this anymore
 #define W5X00_WAIT_LINK_UP(TICKS)       w5x00_event_wait(W5X00_EVENT_LINK_UP, TICKS);//Wait for link ^UP^
@@ -51,9 +51,9 @@
 #define W5X00_IS_STARTING()             (w5x00_get_state(NULL)==W5X00_STARTING_IN_PROGRESS)
 
 //link status shortcuts
-#define W5X00_IS_LINK_UP()              (w5x00_get_link_status(NULL)==PHY_LINK_ON)
-#define W5X00_IS_LINK_DOWN()            (w5x00_get_link_status(NULL)==PHY_LINK_OFF)
-#define W5X00_GET_LINK_STATUS()          w5x00_get_link_status(NULL)
+#define W5X00_GET_LINK_STATUS()         w5x00_get_link_status(NULL)
+#define W5X00_IS_LINK_UP()              (W5X00_GET_LINK_STATUS()==PHY_LINK_ON)
+#define W5X00_IS_LINK_DOWN()            (W5X00_GET_LINK_STATUS()==PHY_LINK_OFF)
 
 //enum of all possible states
 enum w5x00_state_enum {
@@ -67,6 +67,7 @@ enum w5x00_state_enum {
 };
 
 //events
+#define W5X00_EVENT_DONE                (W5X00_EVENT_READY | W5X00_EVENT_ERROR)
 #define W5X00_EVENT_READY               (1 << 0)
 #define W5X00_EVENT_ERROR               (1 << 1)
 #define W5X00_EVENT_LINK_UP             (1 << 2)

@@ -136,3 +136,16 @@ add_compile_options(
     -Wno-unused-function # we have some for the docs that aren't called
     -Wno-maybe-uninitialized
     )
+
+
+## FROM build dir 
+#mkdir build
+#cd ./build
+#rm -rf ./*
+#cmake .. -DPICO_PLATFORM=rp2350 -DPICO_BOARD=pico2
+#cmake --build .
+
+## OR outside build dir
+#mkdir build
+#cmake -S . -B build -DPICO_PLATFORM=rp2350 -DPICO_BOARD=pico2
+#cmake --build build
