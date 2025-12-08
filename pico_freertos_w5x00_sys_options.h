@@ -10,19 +10,19 @@
 //OR: you can set your defaults options right below!
 
 // //performance options
-// #define W5X00_PRINTF                    printf//for debugging- may be set to NULL if you don't want to see it
-// #define W5X00_INIT_DELAY_MS             1500//delay in ms at the beginning of the task. Just.
-// #define W5X00_INTERRUPT                 1//if enabled then SPI is not polled but it waits for GPIO interrupt
-// #define W5X00_USE_SPI_DMA               1//set DMA if SPI is used
-// #define W5X00_CHECK_LINK_TIMEOUT_MS     100//if no traffic for this time then check link status. if 0 then link always up
-// #define W5X00_SPI_SPEED                 (5000 * 1000)//spi speed
+// #define W5X00_PRINTF                    NULL //for debugging- may be set to e.g. printf if you want to see logs
+// #define W5X00_INIT_DELAY_MS             0 //delay in ms at the beginning of the task (e.g. 1500). Just. First logs may not appear if set to 0
+// #define W5X00_INTERRUPT                 0 //if enabled then SPI is not polled but it waits for GPIO interrupt //LWIPER FAILS WITH THIS OPTION
+// #define W5X00_USE_SPI_DMA               0 //set DMA if SPI is used. Set1 to enable or 0 to disable (disabled is default)
+// #define W5X00_CHECK_LINK_TIMEOUT_MS     100 //if no traffic for this time in ms then check link status. if 0 then link always up
+// #define W5X00_SPI_SPEED                 (40 * 1000 * 1000) //spi speed
 
 // //task options
-// #define W5X00_POLL_SLEEP()              taskYIELD() //function during SPI polling. taskYIELD fastest. May be also vTaskDelay(1). IMPORTANT: with very high priority of this task vTaskDelay(1) is recomennded to avoid starving of another ones
-// #define W5X00_DRAIN_SLEEP()             NULL//function during draining packets from W5x00. NULL is fastest. May be also taskYIELD or vTaskDelay(1)
+// #define W5X00_POLL_SLEEP()              vTaskDelay(1) //function between SPI polling. Setting vTaskDelay(1) is wise-golden-option. IMPORTANT: You can set to taskYIELD() but every task with lower priority will be starved
+// #define W5X00_DRAIN_SLEEP()             NULL//function between draining packets from W5x00. NULL is fastest (wise-golden-option). May be also set to taskYIELD() or vTaskDelay(1)
 // #define W5X00_DONT_SET_IRQ_CB           0//if you USES IRQ right now- not only for W5x00 then you have to call W5X00_INT_CB(gpio,events) from your IRQ handler if you want use IRQ also for W5X00. 
 // #define W5X00_THREAD_NAME               "w5x00_thread"//name of W5x00 thread
-// #define W5X00_THREAD_STACKSIZE          256//stacksize for w5x00 thread
+// #define W5X00_THREAD_STACKSIZE          512//stacksize for w5x00 thread
 // #define W5X00_THREAD_PRIO               (configMAX_PRIORITIES-2)//priority for w5x00 thread
 // #define W5X00_SLEEP_MS(ms)              vTaskDelay(pdMS_TO_TICKS(ms))
 
@@ -39,7 +39,7 @@
 /**
  * @brief Logging function used by the W5X00 driver.
  *
- * Set to @c NULL to disable all debug prints.
+ * Set to @c NULL to disable all debug logs Set to e.g. printf if you want to see logs.
  */
 #ifndef W5X00_PRINTF
 #define W5X00_PRINTF(...) do { } while(0)
@@ -47,8 +47,10 @@
 
 /**
  * @brief Initial delay (in milliseconds) executed at the beginning of the W5X00 task. Just.
+ * First logs may not appear if set to 0 or very low variable.
  *
  * Useful for hardware stabilization before starting network activity.
+ * 
  */
 #ifndef W5X00_INIT_DELAY_MS
 #define W5X00_INIT_DELAY_MS 0
@@ -100,8 +102,8 @@
 /**
  * @brief Function executed during SPI polling loops (when interrupts are disabled).
  *
- * Default: @c taskYIELD() – fastest context-switch hint.  
- * You should use @c vTaskDelay(1) when this task has high priority to avoid starving others.
+ * Default: @c vTaskDelay(1) to avoid starving others tasks with lower priority.
+ * You may use @c vTaskYIELD() but other tasks with lower priority will starving (VERY NOT RECOMMENDED)
  */
 #ifndef W5X00_POLL_SLEEP
 #define W5X00_POLL_SLEEP() vTaskDelay(1)
@@ -110,8 +112,8 @@
 /**
  * @brief Function executed while draining packets from the W5X00.
  *
- * - @c NULL is the fastest option  
- * - May be set to @c taskYIELD() or @c vTaskDelay(1) to improve task fairness
+ * - @c NULL is fastest. It is wise-golden-option.
+ * - May be set to @c taskYIELD() or @c vTaskDelay(1) to improve task fairness (but it doesn't)
  */
 #ifndef W5X00_DRAIN_SLEEP
 #define W5X00_DRAIN_SLEEP() NULL
@@ -121,7 +123,7 @@
  * @brief Prevents the driver from installing its own IRQ callback.
  *
  * Set to @c 1 if you already use a GPIO interrupt handler.  
- * In that case, you must manually call @c W5X00_INT_CB(gpio, events) from your ISR.
+ * In that case (set to 1 ), you MUST manually call W5X00_INT_CB(gpio, events) from your ISR. Otherwise not.
  */
 #ifndef W5X00_DONT_SET_IRQ_CB
 #define W5X00_DONT_SET_IRQ_CB 0
@@ -138,7 +140,7 @@
  * @brief Stack size (in words) for the W5X00 task.
  */
 #ifndef W5X00_THREAD_STACKSIZE
-#define W5X00_THREAD_STACKSIZE 256
+#define W5X00_THREAD_STACKSIZE 512
 #endif
 
 /**
@@ -163,7 +165,7 @@
  * @brief Prevents using 0.0.0.0 as IP, netmask or gateway when DHCP is disabled.
  *
  * If set to @c 1, and DHCP is OFF, the driver will replace null values (0.0.0.0)  
- * with the default static IP, netmask and gateway defined below.
+ * with the default static IP, netmask and gateway defined below (PREVENT_DEFAULT_...)
  *
  * - @c 1 – enabled (recommended)  
  * - @c 0 – allow 0.0.0.0 values
