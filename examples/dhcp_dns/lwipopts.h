@@ -40,7 +40,7 @@
 #define PBUF_POOL_SIZE                 16
 #define PBUF_POOL_BUFSIZE              512
 
-// Other protocol options – disabled by default, you may enable later
+// Other protocol options
 #define LWIP_NETCONN                   1
 #define LWIP_SOCKET                    1
 #define LWIP_ARP                       1
