@@ -16,6 +16,7 @@ endif()
 
 # Define the main executable
 add_executable(${PROJECT_NAME}
+    tcp_client_server.c
     loopback.c
 )
 

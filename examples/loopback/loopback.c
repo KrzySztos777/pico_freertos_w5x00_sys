@@ -11,10 +11,8 @@
 //get info if dhcp is on - procedure
 #include "lwip/netif.h"
 
-//loopback
-#include "lwip/sockets.h"
-#include "lwip/inet.h"
-#include "lwip/netdb.h"
+//tcp client/server
+#include "tcp_client_server.h"
 
 void link_callback(struct netif *netif)
 {
@@ -68,99 +66,19 @@ void init_callback(struct netif *netif){
     netif_set_link_callback(netif, link_callback);
 }
 
-//universal tcp_loopback func
-int tcp_loopback(int sock)
-{
-    blink=100;//blink faster- success is the master!
-    
-    char buf[256];
-
-    while (1)
-    {
-        int r = recv(sock, buf, sizeof(buf)-1, 0);
-
-        if (r <= 0) {
-            printf("Loopback: connection closed or error\n");
-            return -1;  // zakończ obsługę socketu
-        }
-
-        buf[r] = 0;  // nul-terminate for printing
-        printf("Loopback received: %s", buf);
-
-        // Odesłanie danych
-        char sendIntro[]="Loopback sent: ";
-        if (send(sock, sendIntro, strlen(sendIntro), 0) < 0 || send(sock, buf, r, 0) < 0) {
-            printf("Loopback: send() failed\n");
-            return -1;
-        }
-    }
-}
-
-//tcp server task
-void tcp_server_task(void *arg)
-{
-    W5X00_WAIT_LINK_UP(portMAX_DELAY);
-    
-    int listen_sock, client_sock;
-    struct sockaddr_in server_addr;
-    socklen_t addr_len = sizeof(server_addr);
-
-    listen_sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (listen_sock < 0) {
-        printf("socket() failed, errno=%d\n", errno);
-        vTaskDelete(NULL);
-    }
-
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(23);
-    server_addr.sin_addr.s_addr = IPADDR_ANY;
-
-    if (bind(listen_sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        printf("bind() failed, errno=%d\n", errno);
-        closesocket(listen_sock);
-        vTaskDelete(NULL);
-    }
-
-    if (listen(listen_sock, 1) < 0) {
-        printf("listen() failed, errno=%d\n", errno);
-        closesocket(listen_sock);
-        vTaskDelete(NULL);
-    }
-
-    printf("TCP server listening on port 23...\n");
-
-    while (1)
-    {
-        client_sock = accept(listen_sock, (struct sockaddr *)&server_addr, &addr_len);
-        if (client_sock < 0) {
-            printf("accept() failed, errno=%d\n", errno);
-            continue;
-        }
-        
-        int timeout_ms = 5000;
-        setsockopt(client_sock, SOL_SOCKET, SO_RCVTIMEO, &timeout_ms, sizeof(timeout_ms));
-        setsockopt(client_sock, SOL_SOCKET, SO_SNDTIMEO, &timeout_ms, sizeof(timeout_ms));
-
-        printf("Client connected\n");
-
-        tcp_loopback(client_sock);
-
-        closesocket(client_sock);
-        printf("Client disconnected\n");
-    }
-}
-
-
-
 int main(){
 
     stdio_init_all();
 
     xTaskCreate(led_task, "LED_Task", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 
-    //tcp loopback server task
+    //tcp loopback server and client task
+    #if TCP_SERVER
     xTaskCreate(tcp_server_task, "server_task", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+    #endif
+    #if TCP_CLIENT
+    xTaskCreate(tcp_client_task, "client_task", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+    #endif
 
     //set our mac address
     uint8_t mac[6]={0x00,0x08,0xDC,0xFF,0x44,0xCC};
@@ -174,7 +92,6 @@ int main(){
     w5x00_start(dhcp, &ip, &nm, &gw, init_callback);
 
     //the third one is my favourite, coz we can connect 1-to-1 uC to a computer by swapping the static ip&gw addresses
-    //@up- in this example static&dhcp is *usefull*
 
     vTaskStartScheduler();
 
