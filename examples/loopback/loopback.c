@@ -84,14 +84,11 @@ int main(){
     uint8_t mac[6]={0x00,0x08,0xDC,0xFF,0x44,0xCC};
     w5x00_set_mac(mac);
 
-    //THIRD OPTION- static&dhcp (use static ip until dhcp changes it)
+    //SECOND OPTION- only STATIC (may be also w5x00_static(&ip,&nm,&gw,NULL);)
     ip4_addr_t ip = IP4(192,168,0,13); // ip address
     ip4_addr_t nm = IP4(255,255,255,0);// netmask
     ip4_addr_t gw = IP4(192,168,0,1);  // gateaway
-    int dhcp = 1;//is dhcp need to be set?
-    w5x00_start(dhcp, &ip, &nm, &gw, init_callback);
-
-    //the third one is my favourite, coz we can connect 1-to-1 uC to a computer by swapping the static ip&gw addresses
+    w5x00_static(&ip,&nm,&gw,init_callback);
 
     vTaskStartScheduler();
 
