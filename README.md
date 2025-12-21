@@ -1,3 +1,7 @@
+# PREAMBLE
+
+This library provides a port of the W5x00 family (W5500 and W5100S) for Raspberry Pi Pico / Pico 2, enabling operation with **LwIP in NO_SYS = 0 mode on FreeRTOS**. It is a fork of <a href="https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C">WIZnet-PICO-LWIP-C</a>. The operation and usage of the examples are identical. The code and README were kept as close to the original as possible. Bug reports, reviews, and suggestions are always welcome.
+
 # Getting Started with LwIP Examples
 
 These sections will guide you through a series of steps from configuring development environment to running LwIP examples using the **WIZnet's ethernet products**.
@@ -6,12 +10,14 @@ These sections will guide you through a series of steps from configuring develop
 - [**Hardware requirements**](#hardware_requirements)
 - [**LwIP example structure**](#lwip_example_structure)
 - [**LwIP example testing**](#lwip_example_testing)
-- [**How to use port directory**](#how_to_use_port_directory)
+- [**How to use this library**](#how_to_use_this_library)
 
 
 
 <a name="development_environment_configuration"></a>
 ## Development environment configuration
+
+Pico SDK and FreeFRTOS has to be installed already. It is recommended to set **FREERTOS_KERNEL_PATH** and **PICO_SDK_PATH** as environment varialbes. It is guarded by default _pico_sdk_import.cmake_ and _FreeRTOS_Kernel_import.cmake_ files.
 
 To test the LwIP examples, the development environment must be configured to use Raspberry Pi Pico, W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2.
 
@@ -39,7 +45,7 @@ The LwIP examples use **Raspberry Pi Pico** and **WIZnet Ethernet HAT** - ethern
 <a name="lwip_example_structure"></a>
 ## LwIP example structure
 
-Examples are available at '**WIZnet-PICO-LWIP-C/examples/**' directory. As of now, following examples are provided.
+Examples are available at '**pico_freertos_w5x00_sys/examples/**' directory. As of now, following examples are provided.
 
 - [**DHCP & DNS**][link-dhcp_dns]
 - [**Loopback**][link-loopback]
@@ -48,18 +54,14 @@ Examples are available at '**WIZnet-PICO-LWIP-C/examples/**' directory. As of no
 Note that **ioLibrary_Driver**, **pico-sdk**, **pico-extras** are needed to run LwIP examples.
 
 - **ioLibrary_Driver** library is applicable to WIZnet's W5x00 ethernet chip.
-- **pico-sdk** is made available by Pico to enable developers to build software applications for the Pico platform.
-- **pico-extras** provides additional useful functions not provided by pico-sdk.
 
-Libraries are located in the '**WIZnet-PICO-LWIP-C/libraries/**' directory.
+Libraries are located in the '**pico_freertos_w5x00_sys/lib/**' directory.
 
 - [**ioLibrary_Driver**][link-iolibrary_driver]
-- [**pico-sdk**][link-pico_sdk]
-- [**pico-extras**][link-pico_extras]
 
-If you want to modify the code that MCU-dependent and use a MCU other than **RP2040**, you can modify it in the '**WIZnet-PICO-LWIP-C/port/**' directory.
+If you want to modify the code that MCU-dependent and use a MCU other than **RP2040**, you can modify it in the '**pico_freertos_w5x00_sys/port/**' directory.
 
-port is located in the '**WIZnet-PICO-LWIP-C/port/**' directory.
+port is located in the '**pico_freertos_w5x00_sys/port/**' directory.
 
 - [**ioLibrary_Driver**][link-port_iolibrary_driver]
 - [**lwip**][link-port_lwip]
@@ -80,17 +82,17 @@ If the LwIP examples are cloned, the library set as a submodule is an empty dire
 cd [user path]
 
 // e.g.
-cd D:/WIZnet-PICO
+cd D:/pico_freertos_w5x00_sys
 
 /* Clone */
-git clone --recurse-submodules https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C.git
+git clone --recurse-submodules https://github.com/KrzySztos777/pico_freertos_w5x00_sys.git
 ```
 
 With Visual Studio Code, the library set as a submodule is automatically downloaded, so it doesn't matter whether the library set as a submodule is an empty directory or not, so refer to it.
 
 2. Setup board
 
-Setup the board in '**CMakeLists.txt**' in '**WIZnet-PICO-LWIP-C/**' directory according to the evaluation board to be used referring to the following.
+Setup the board in '**CMakeLists.txt**' in '**pico_freertos_w5x00_sys/**' directory according to the evaluation board to be used referring to the following.
 
 - WIZnet Ethernet HAT
 - W5100S-EVB-Pico
@@ -143,255 +145,66 @@ Please refer to 'README.md' in each example directory to find detail guide for t
 > git apply ./patches/0001_pico_sdk_clocks.patch
 > ```
 
-<a name="how_to_use_port_directory"></a>
+<a name="how_to_use_this_library"></a>
 ## How to use port directory
 
-We moved the MCU dependent code to the port directory. The tree of port is shown below.
+Library is tried to be as-clear-as-possible. Please check examples how powerfull it may be. Below is ***absolutelly minimal example*** of using this lib:
 
 ```
-WIZnet-PICO-LWIP-C
-┣ port
-    ┣ ioLibrary_Driver
-    ┃   ┣ inc
-    ┃   ┃   ┣ w5x00_gpio_irq.h
-    ┃   ┃   ┣ w5x00_spi.h
-    ┃   ┃   ┣ wiznet_spi_pio.h
-    ┃   ┃   ┗ wiznet_spi.h
-    ┃   ┗ src
-    ┃   ┃   ┣ w5x00_gpio_irq.c
-    ┃   ┃   ┣ w5x00_spi.c
-    ┃   ┃   ┣ wiznet_spi_pio.c
-    ┃   ┃   ┗ wiznet_spi_pio.pio
-    ┣ lwip
-    ┃   ┣ lwipopts.h
-    ┃   ┣ w5x00_lwip.c
-    ┃   ┗ w5x00_lwip.h
-    ┣ timer
-    ┃   ┣ timer.c
-    ┃   ┗ timer.h
-    ┣ CMakeLists.txt
-    ┗ port_common.h
+#include <stdio.h>
+
+#include "pico/stdlib.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
+
+#include "pico_freertos_w5x00_sys.h"
+
+int main(){
+
+    stdio_init_all();
+
+    ip4_addr_t ip = IP4(192,168,0,13); // ip address
+    ip4_addr_t nm = IP4(255,255,255,0);// netmask
+    ip4_addr_t gw = IP4(192,168,0,1);  // gateaway
+    int dhcp = 0;//is dhcp need to be set?
+    w5x00_start(dhcp, &ip, &nm, &gw, NULL);//or w5x00_dhcp(NULL)- but then we may don't know ip address immediatelly
+    
+    //That's all. now you can try to ping this ip
+    
+    vTaskStartScheduler();
+
+    while(1){};
+}
 ```
+Options that you may want to change are described in **pico_freertos_w5x00_sys_options.h** file. You may do it by creating your own **w5x00opts.h** inside your project or just set this options in any header file before **pico_freertos_w5x00_sys** file is included. These are fast-described and default (best):
 
-- **ioLibrary_Driver**
-
-If you want to change things related to **SPI**, such as the SPI port number and SPI read/write function, or GPIO port number and function related to **interrupt** or use a different MCU without using the RP2040, you need to change the code in the '**WIZnet-PICO-LWIP-C/port/ioLibrary_Driver/**' directory. Here is information about functions.
-
-```cpp
-/* W5x00 */
-/*! \brief Set CS pin
- *  \ingroup w5x00_spi
- *
- *  Set chip select pin of spi0 to low(Active low).
- *
- *  \param none
- */
-static inline void wizchip_select(void);
-
-/*! \brief Set CS pin
- *  \ingroup w5x00_spi
- *
- *  Set chip select pin of spi0 to high(Inactive high).
- *
- *  \param none
- */
-static inline void wizchip_deselect(void);
-
-/*! \brief Read from an SPI device, blocking
- *  \ingroup w5x00_spi
- *
- *  Set spi_read_blocking function.
- *  Read byte from SPI to rx_data buffer.
- *  Blocks until all data is transferred. No timeout, as SPI hardware always transfers at a known data rate.
- *
- *  \param none
- */
-static uint8_t wizchip_read(void);
-
-/*! \brief Write to an SPI device, blocking
- *  \ingroup w5x00_spi
- *
- *  Set spi_write_blocking function.
- *  Write byte from tx_data buffer to SPI device.
- *  Blocks until all data is transferred. No timeout, as SPI hardware always transfers at a known data rate.
- *
- *  \param tx_data Buffer of data to write
- */
-static void wizchip_write(uint8_t tx_data);
-
-#ifdef USE_SPI_DMA
-/*! \brief Configure all DMA parameters and optionally start transfer
- *  \ingroup w5x00_spi
- *
- *  Configure all DMA parameters and read from DMA
- *
- *  \param pBuf Buffer of data to read
- *  \param len element count (each element is of size transfer_data_size)
- */
-static void wizchip_read_burst(uint8_t *pBuf, uint16_t len);
-
-/*! \brief Configure all DMA parameters and optionally start transfer
- *  \ingroup w5x00_spi
- *
- *  Configure all DMA parameters and write to DMA
- *
- *  \param pBuf Buffer of data to write
- *  \param len element count (each element is of size transfer_data_size)
- */
-static void wizchip_write_burst(uint8_t *pBuf, uint16_t len);
-#endif
-
-/*! \brief Enter a critical section
- *  \ingroup w5x00_spi
- *
- *  Set ciritical section enter blocking function.
- *  If the spin lock associated with this critical section is in use, then this
- *  method will block until it is released.
- *
- *  \param none
- */
-static void wizchip_critical_section_lock(void);
-
-/*! \brief Release a critical section
- *  \ingroup w5x00_spi
- *
- *  Set ciritical section exit function.
- *  Release a critical section.
- *
- *  \param none
- */
-static void wizchip_critical_section_unlock(void);
-
-/*! \brief Initialize SPI instances and Set DMA channel
- *  \ingroup w5x00_spi
- *
- *  Set GPIO to spi0.
- *  Puts the SPI into a known state, and enable it.
- *  Set DMA channel completion channel.
- *
- *  \param none
- */
-void wizchip_spi_initialize(void);
-
-/*! \brief Initialize a critical section structure
- *  \ingroup w5x00_spi
- *
- *  The critical section is initialized ready for use.
- *  Registers callback function for critical section for WIZchip.
- *
- *  \param none
- */
-void wizchip_cris_initialize(void);
-
-/*! \brief W5x00 chip reset
- *  \ingroup w5x00_spi
- *
- *  Set a reset pin and reset.
- *
- *  \param none
- */
-void wizchip_reset(void);
-
-/*! \brief Initialize WIZchip
- *  \ingroup w5x00_spi
- *
- *  Set callback function to read/write byte using SPI.
- *  Set callback function for WIZchip select/deselect.
- *  Set memory size of W5x00 chip and monitor PHY link status.
- *
- *  \param none
- */
-void wizchip_initialize(void);
-
-/*! \brief Check chip version
- *  \ingroup w5x00_spi
- *
- *  Get version information.
- *
- *  \param none
- */
-void wizchip_check(void);
-
-/* Network */
-/*! \brief Initialize network
- *  \ingroup w5x00_spi
- *
- *  Set network information.
- *
- *  \param net_info network information.
- */
-void network_initialize(wiz_NetInfo net_info);
-
-/*! \brief Print network information
- *  \ingroup w5x00_spi
- *
- *  Print network information about MAC address, IP address, Subnet mask, Gateway, DHCP and DNS address.
- *
- *  \param net_info network information.
- */
-void print_network_information(wiz_NetInfo net_info);
 ```
+//performance options
+#define W5X00_PRINTF                    NULL //for debugging- may be set to e.g. printf if you want to see logs
+#define W5X00_INIT_DELAY_MS             0 //delay in ms at the beginning of the task (e.g. 1500). Just. First logs may not appear if set to 0
+#define W5X00_INTERRUPT                 0 //if enabled then SPI is not polled but it waits for GPIO interrupt //LWIPER FAILS WITH THIS OPTION
+#define W5X00_USE_SPI_DMA               0 //set DMA if SPI is used. Set1 to enable or 0 to disable (disabled is default)
+#define W5X00_CHECK_LINK_TIMEOUT_MS     100 //if no traffic for this time in ms then check link status. if 0 then link always up
+#define W5X00_SPI_SPEED                 (40 * 1000 * 1000) //spi speed
 
-```cpp
-/* GPIO */
-/*! \brief Initialize w5x00 gpio interrupt callback function
- *  \ingroup w5x00_gpio_irq
- *
- *  Add a w5x00 interrupt callback.
- *
- *  \param socket socket number
- *  \param callback the gpio interrupt callback function
- */
-void wizchip_gpio_interrupt_initialize(uint8_t socket, void (*callback)(void));
+//task options
+#define W5X00_POLL_SLEEP()              vTaskDelay(1) //function between SPI polling. Setting vTaskDelay(1) is wise-golden-option. IMPORTANT: You can set to taskYIELD() but every task with lower priority will be starved
+#define W5X00_DRAIN_SLEEP()             NULL//function between draining packets from W5x00. NULL is fastest (wise-golden-option). May be also set to taskYIELD() or vTaskDelay(1)
+#define W5X00_DONT_SET_IRQ_CB           0//if you USES IRQ right now- not only for W5x00 then you have to call W5X00_INT_CB(gpio,events) from your IRQ handler if you want use IRQ also for W5X00. 
+#define W5X00_THREAD_NAME               "w5x00_thread"//name of W5x00 thread
+#define W5X00_THREAD_STACKSIZE          512//stacksize for w5x00 thread
+#define W5X00_THREAD_PRIO               (configMAX_PRIORITIES-2)//priority for w5x00 thread
+#define W5X00_SLEEP_MS(ms)              vTaskDelay(pdMS_TO_TICKS(ms))
 
-/*! \brief Assign gpio interrupt callback function
- *  \ingroup w5x00_gpio_irq
- *
- *  GPIO interrupt callback function.
- *
- *  \param gpio Which GPIO caused this interrupt
- *  \param events Which events caused this interrupt. See \ref gpio_set_irq_enabled for details.
- */
-static void wizchip_gpio_interrupt_callback(uint gpio, uint32_t events);
+//prevent null ip without dhcp
+#define PREVENT_NULL_IP 1
+#define W5X00_DEFAULT_IP "192.168.0.13"
+#define W5X00_DEFAULT_NM "255.255.255.0"
+#define W5X00_DEFAULT_GW "192.168.0.1"
 ```
-
-- **timer**
-
-If you want to change things related to the **timer**. Also, if you use a different MCU without using the RP2040, you need to change the code in the '**WIZnet-PICO-LWIP-C/port/timer/**' directory. Here is information about functions.
-
-```cpp
-/* Timer */
-/*! \brief Initialize timer callback function
- *  \ingroup timer
- *
- *  Add a repeating timer that is called repeatedly at the specified interval in microseconds.
- *
- *  \param callback the repeating timer callback function
- */
-void wizchip_1ms_timer_initialize(void (*callback)(void));
-
-/*! \brief Assign timer callback function
- *  \ingroup timer
- *
- *  1ms timer callback function.
- *
- *  \param t Information about a repeating timer
- */
-bool wizchip_1ms_timer_callback(struct repeating_timer *t);
-
-/* Delay */
-/*! \brief Wait for the given number of milliseconds before returning
- *  \ingroup timer
- *
- *  This method attempts to perform a lower power sleep (using WFE) as much as possible.
- *
- *  \param ms the number of milliseconds to sleep
- */
-void wizchip_delay_ms(uint32_t ms);
-```
-
-
-
+## Known bugs
+If W5X00_INTERRUPT option is enabled then iperf fails. Library with default options may be threaten as production code.
 <!--
 Link
 -->

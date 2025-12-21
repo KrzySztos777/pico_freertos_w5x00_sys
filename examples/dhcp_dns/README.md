@@ -24,58 +24,20 @@ If you are using W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-P
 
 ## Step 3: Setup DHCP & DNS Example
 
-To test the DHCP & DNS example, minor settings shall be done in code.
+1. Setup DNS configuration
 
-1. Setup SPI port and pin in 'w5x00_spi.h' in 'WIZnet-PICO-LWIP-C/port/ioLibrary_Driver/' directory.
-
-Setup the SPI interface you use.
-- If you use the W5100S-EVB-Pico, W5500-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2,
-
-```cpp
-/* SPI */
-#define SPI_PORT spi0
-
-#define PIN_SCK 18
-#define PIN_MOSI 19
-#define PIN_MISO 16
-#define PIN_CS 17
-#define PIN_RST 20
-```
-
-If you want to test with the DHCP & DNS example using SPI DMA, uncomment USE_SPI_DMA.
-
-```cpp
-/* Use SPI DMA */
-//#define USE_SPI_DMA // if you want to use SPI DMA, uncomment.
-```
-- If you use the W55RP20-EVB-Pico,
-```cpp
-/* SPI */
-#define USE_SPI_PIO
-
-#define PIN_SCK 21
-#define PIN_MOSI 23
-#define PIN_MISO 22
-#define PIN_CS 20
-#define PIN_RST 25
-```
-
-2. Setup DNS configuration
-
-Setup the domain name that you want to get IP in 'w5x00_dhcp_dns.c' in 'WIZnet-PICO-LWIP-C/examples/dhcp_dns/' directory.
+Setup the domain name that you want to get IP in 'dhcp_dns.c' in './examples/dhcp_dns/' directory.
 
 ```cpp
 /* DNS */
-static uint8_t g_dns_target_domain[] = "www.wiznet.io";
+const char *host = "eltin.com.pl";
 ```
-
-
 
 ## Step 4: Build
 
 1. After completing the DHCP & DNS example configuration, click 'build' in the status bar at the bottom of Visual Studio Code or press the 'F7' button on the keyboard to build.
 
-2. When the build is completed, 'w5x00_dhcp_dns.uf2' is generated in 'WIZnet-PICO-LWIP-C/build/examples/dhcp_dns/' directory.
+2. When the build is completed, 'dhcp_dns.uf2' is generated in './build/examples/dhcp_dns/' directory.
 
 
 
@@ -85,7 +47,7 @@ static uint8_t g_dns_target_domain[] = "www.wiznet.io";
 
 ![][link-raspberry_pi_pico_usb_mass_storage]
 
-2. Drag and drop 'w5x00_dhcp_dns.uf2' onto the USB mass storage device 'RPI-RP2'.
+2. Drag and drop 'dhcp_dns.uf2' onto the USB mass storage device 'RPI-RP2'.
 
 3. Connect to the serial COM port of Raspberry Pi Pico, W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2 with Tera Term.
 

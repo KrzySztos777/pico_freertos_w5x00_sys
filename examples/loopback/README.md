@@ -1,15 +1,13 @@
-# How to Test iPerf Example
+# How to Test Loopback Example
 
 
 
 ## Step 1: Prepare software
 
-The following serial terminal program and iPerf are required for iPerf example test, download and install from below links.
-
-Note that iPerf uses iPerf 2.0.9.
+The following serial terminal programs are required for Loopback example test, download and install from below links.
 
 - [**Tera Term**][link-tera_term]
-- [**iPerf**][link-iperf]
+- [**Hercules**][link-hercules]
 
 
 
@@ -25,128 +23,104 @@ If you are using W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-P
 
 
 
-## Step 3: Setup iPerf Example
+## Step 3: Setup Loopback Example
 
-To test the iPerf example, minor settings shall be done in code.
-
-1. Setup SPI port and pin in 'w5x00_spi.h' in 'WIZnet-PICO-LWIP-C/port/ioLibrary_Driver/' directory.
-
-Setup the SPI interface you use.
-- If you use the W5100S-EVB-Pico, W5500-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2,
-
-```cpp
-/* SPI */
-#define SPI_PORT spi0
-
-#define PIN_SCK 18
-#define PIN_MOSI 19
-#define PIN_MISO 16
-#define PIN_CS 17
-#define PIN_RST 20
-```
-
-If you want to test with the iPerf example using SPI DMA, uncomment USE_SPI_DMA.
-
-```cpp
-/* Use SPI DMA */
-//#define USE_SPI_DMA // if you want to use SPI DMA, uncomment.
-```
-- If you use the W55RP20-EVB-Pico,
-```cpp
-/* SPI */
-#define USE_SPI_PIO
-
-#define PIN_SCK 21
-#define PIN_MOSI 23
-#define PIN_MISO 22
-#define PIN_CS 20
-#define PIN_RST 25
-```
-
-2. Setup network configuration such as IP in 'w5x00_lwiperf.c' which is the iPerf example in 'WIZnet-PICO-LWIP-C/examples/lwiperf/' directory.
+1. Setup network configuration such as IP in 'loopback.c' which is the Loopback example in './examples/loopback/' directory.
 
 Setup IP and other network settings to suit your network environment.
 
 ```cpp
-// Initialize network configuration
-IP4_ADDR(&g_ip, 192, 168, 11, 2);
-IP4_ADDR(&g_mask, 255, 255, 255, 0);
-IP4_ADDR(&g_gateway, 192, 168, 11, 1);
+ip4_addr_t ip = IP4(192,168,0,13); // ip address
+ip4_addr_t nm = IP4(255,255,255,0);// netmask
+ip4_addr_t gw = IP4(192,168,0,1);  // gateaway
+w5x00_static(&ip,&nm,&gw,init_callback);
 ```
 
-3. Setup iPerf configuration in 'w5x00_lwiperf.c' in 'WIZnet-PICO-LWIP-C/examples/lwiperf/' directory.
+2. Allows users to choose between echoserver mode and echoclient mode.
+
+- Setup loopback configuration in 'tcp_client_server.h'.
 
 ```cpp
-/* Port */
-#define PORT_LWIPERF 5001
+//options for this example
+#define TCP_SERVER          1//enable tcp server?
+#define TCP_CLIENT          1//enable tcp client?
+
+#define TCP_SERVER_PORT     23//server port
+
+#define TCP_CLIENT_IP       "192.168.0.30"//client ip
+#define TCP_CLIENT_PORT     4001//client port
+
+#define TCP_TIMEOUT_SEC     5
 ```
 
 
 
 ## Step 4: Build
 
-1. After completing the iPerf example configuration, click 'build' in the status bar at the bottom of Visual Studio Code or press the 'F7' button on the keyboard to build.
+1. After completing the Loopback example configuration, click 'build' in the status bar at the bottom of Visual Studio Code or press the 'F7' button on the keyboard to build.
 
-2. When the build is completed, 'w5x00_lwiperf.uf2' is generated in 'WIZnet-PICO-LWIP-C/build/examples/lwiperf/' directory.
+2. When the build is completed, 'loopback.uf2' is generated in './build/examples/loopback/' directory.
+
+3. While pressing the BOOTSEL button of Raspberry Pi Pico, W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2 power on the board, the USB mass storage 'RPI-RP2' is automatically mounted.
+
+![][link-raspberry_pi_pico_usb_mass_storage]
+
+4. Drag and drop 'loopback.uf2' onto the USB mass storage device 'RPI-RP2'.
 
 
 
 ## Step 5: Upload and Run
 
-1. While pressing the BOOTSEL button of Raspberry Pi Pico, W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2 power on the board, the USB mass storage 'RPI-RP2' is automatically mounted.
+**TCP Server mode**
 
-![][link-raspberry_pi_pico_usb_mass_storage]
-
-2. Drag and drop 'w5x00_lwiperf.uf2' onto the USB mass storage device 'RPI-RP2'.
-
-3. Connect to the serial COM port of Raspberry Pi Pico, W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2 with Tera Term.
+1. Connect to the serial COM port of Raspberry Pi Pico, W5100S-EVB-Pico or W5500-EVB-Pico with Tera Term.
 
 ![][link-connect_to_serial_com_port]
 
-4. Reset your board.
+2. Reset your board.
 
-5. If the iPerf example works normally on Raspberry Pi Pico, W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2 you can see the IP of Raspberry Pi Pico, W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2 and the TCP server is open.
+3. If the Loopback example works normally on Raspberry Pi Pico, W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2 you can see the IP of Raspberry Pi Pico, W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2 and the loopback server is open.
 
-![][link-see_network_information_of_raspberry_pi_pico_and_open_tcp_server]
+![][link-see_network_information_of_raspberry_pi_pico_and_open_loopback_server]
 
-6. Run command prompt to enter the iPerf command and move to iPerf path.
+4. Connect to the open loopback server using Hercules TCP client. When connecting to the loopback server, you need to enter is the IP that was configured in Step 3, the port is 5001 by default.
 
-```cpp
-/* Change directory */
-// change to the 'iperf-x.x.x-winxx' directory.
-cd [user path]/iperf-x.x.x-winxx
+![][link-connect_to_loopback_server_using_hercules_tcp_client_1]
 
-// e.g.
-cd D:/iperf-2.0.9-win64
-```
+5. Once connected if you send data to the loopback server, you should be able to receive back the sent message.
 
-![][link-run_command_prompt]
+![][link-receive_back_sent_message]
 
-![][link-move_to_iperf_path]
+**TCP Client mode**
 
-7. In the command prompt, enter the following command to connect to Raspberry Pi Pico, W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2 running as a TCP server and test.
+1. Connect to the serial COM port of Raspberry Pi Pico, W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2 with Tera Term.
 
-```cpp
-/* Network performance measurement test */
-iperf -c [connecting to] -i [seconds between periodic bandwidth reports] -t [time in seconds to transmit for]
+![][link-connect_to_serial_com_port]
 
-// e.g.
-iperf -c 192.168.11.253 -i 1 -t 10
-```
+2. Reset your board.
+3. Open Hercules and set the port for the W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2 to connect to 5000.
 
-![][link-run_network_performance_measurement_test]
+![][link-hercules_server_open]
 
+4. If the W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2 works properly, you should see it connect to the server.
 
+![][link-lwip_client_connect]
+
+5. Once connected if you send data to the loopback client, you should be able to receive back the sent message.
+
+![][link-client_echo_data]
 
 <!--
 Link
 -->
 
 [link-tera_term]: https://osdn.net/projects/ttssh2/releases/
-[link-iperf]: https://iperf.fr/iperf-download.php
-[link-raspberry_pi_pico_usb_mass_storage]: https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C/blob/main/static/images/lwiperf/raspberry_pi_pico_usb_mass_storage.png
-[link-connect_to_serial_com_port]: https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C/blob/main/static/images/lwiperf/connect_to_serial_com_port.png
-[link-see_network_information_of_raspberry_pi_pico_and_open_tcp_server]: https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C/blob/main/static/images/lwiperf/see_network_information_of_raspberry_pi_pico_and_open_tcp_server.png
-[link-run_command_prompt]: https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C/blob/main/static/images/lwiperf/run_command_prompt.png
-[link-move_to_iperf_path]: https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C/blob/main/static/images/lwiperf/move_to_iperf_path.png
-[link-run_network_performance_measurement_test]: https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C/blob/main/static/images/lwiperf/run_network_performance_measurement_test.png
+[link-hercules]: https://www.hw-group.com/software/hercules-setup-utility
+[link-raspberry_pi_pico_usb_mass_storage]: https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C/blob/main/static/images/loopback/raspberry_pi_pico_usb_mass_storage.png
+[link-connect_to_serial_com_port]: https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C/blob/main/static/images/loopback/connect_to_serial_com_port.png
+[link-see_network_information_of_raspberry_pi_pico_and_open_loopback_server]: https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C/blob/main/static/images/loopback/see_network_information_of_raspberry_pi_pico_and_open_loopback_server.png
+[link-connect_to_loopback_server_using_hercules_tcp_client_1]: https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C/blob/main/static/images/loopback/connect_to_loopback_server_using_hercules_tcp_client.png
+[link-receive_back_sent_message]: https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C/blob/main/static/images/loopback/receive_back_sent_message.png
+[link-hercules_server_open]:https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C/blob/main/static/images/loopback/hercules_server_open.png
+[link-lwip_client_connect]:https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C/blob/main/static/images/loopback/lwip_client_connect.png
+[link-client_echo_data]:https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C/blob/main/static/images/loopback/client_echo_data.png

@@ -27,67 +27,25 @@ If you are using W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-P
 
 ## Step 3: Setup iPerf Example
 
-To test the iPerf example, minor settings shall be done in code.
-
-1. Setup SPI port and pin in 'w5x00_spi.h' in 'WIZnet-PICO-LWIP-C/port/ioLibrary_Driver/' directory.
-
-Setup the SPI interface you use.
-- If you use the W5100S-EVB-Pico, W5500-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2,
-
-```cpp
-/* SPI */
-#define SPI_PORT spi0
-
-#define PIN_SCK 18
-#define PIN_MOSI 19
-#define PIN_MISO 16
-#define PIN_CS 17
-#define PIN_RST 20
-```
-
-If you want to test with the iPerf example using SPI DMA, uncomment USE_SPI_DMA.
-
-```cpp
-/* Use SPI DMA */
-//#define USE_SPI_DMA // if you want to use SPI DMA, uncomment.
-```
-- If you use the W55RP20-EVB-Pico,
-```cpp
-/* SPI */
-#define USE_SPI_PIO
-
-#define PIN_SCK 21
-#define PIN_MOSI 23
-#define PIN_MISO 22
-#define PIN_CS 20
-#define PIN_RST 25
-```
-
-2. Setup network configuration such as IP in 'w5x00_lwiperf.c' which is the iPerf example in 'WIZnet-PICO-LWIP-C/examples/lwiperf/' directory.
+1. Setup network configuration such as IP in 'lwiperf.c' which is the iPerf example in './examples/lwiperf/' directory.
 
 Setup IP and other network settings to suit your network environment.
 
 ```cpp
-// Initialize network configuration
-IP4_ADDR(&g_ip, 192, 168, 11, 2);
-IP4_ADDR(&g_mask, 255, 255, 255, 0);
-IP4_ADDR(&g_gateway, 192, 168, 11, 1);
+ip4_addr_t ip = IP4(192,168,0,13); // ip address
+ip4_addr_t nm = IP4(255,255,255,0);// netmask
+ip4_addr_t gw = IP4(192,168,0,1);  // gateaway
+int dhcp = 1;//is dhcp need to be set?
+w5x00_start(dhcp, &ip, &nm, &gw, init_callback);
 ```
 
-3. Setup iPerf configuration in 'w5x00_lwiperf.c' in 'WIZnet-PICO-LWIP-C/examples/lwiperf/' directory.
-
-```cpp
-/* Port */
-#define PORT_LWIPERF 5001
-```
-
-
+2. iPerf port is default 5001
 
 ## Step 4: Build
 
 1. After completing the iPerf example configuration, click 'build' in the status bar at the bottom of Visual Studio Code or press the 'F7' button on the keyboard to build.
 
-2. When the build is completed, 'w5x00_lwiperf.uf2' is generated in 'WIZnet-PICO-LWIP-C/build/examples/lwiperf/' directory.
+2. When the build is completed, 'lwiperf.uf2' is generated in './build/examples/lwiperf/' directory.
 
 
 
@@ -97,7 +55,7 @@ IP4_ADDR(&g_gateway, 192, 168, 11, 1);
 
 ![][link-raspberry_pi_pico_usb_mass_storage]
 
-2. Drag and drop 'w5x00_lwiperf.uf2' onto the USB mass storage device 'RPI-RP2'.
+2. Drag and drop 'lwiperf.uf2' onto the USB mass storage device 'RPI-RP2'.
 
 3. Connect to the serial COM port of Raspberry Pi Pico, W5100S-EVB-Pico, W5500-EVB-Pico, W55RP20-EVB-Pico, W5100S-EVB-Pico2 or W5500-EVB-Pico2 with Tera Term.
 
