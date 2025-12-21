@@ -1,7 +1,21 @@
 # CMake minimum required version
 cmake_minimum_required(VERSION 3.12)
 
-#CMake's imports
+# Set board
+#set(BOARD_NAME WIZnet_Ethernet_HAT)
+#set(BOARD_NAME W5100S_EVB_PICO)
+#set(BOARD_NAME W5500_EVB_PICO)
+#set(BOARD_NAME W55RP20_EVB_PICO)
+#set(BOARD_NAME W5100S_EVB_PICO2)
+set(BOARD_NAME W5500_EVB_PICO2)
+
+#set PICO_BOARD must be before include(pico_sdk_import.cmake)
+if(${BOARD_NAME} STREQUAL W5100S_EVB_PICO2 OR ${BOARD_NAME} STREQUAL W5500_EVB_PICO2)
+    set(PICO_BOARD pico2)
+endif()
+#set(PICO_BOARD pico2) #If you are using WIZnet_ethernet_HAT with Pico2, uncomment it.
+
+# CMake's imports
 include(pico_sdk_import.cmake)
 include(FreeRTOS_Kernel_import.cmake)
 
@@ -10,14 +24,6 @@ project(pico_freertos_w5x00_sys C CXX ASM)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
-
-# Set board
-#set(BOARD_NAME WIZnet_Ethernet_HAT)
-# set(BOARD_NAME W5100S_EVB_PICO)
-set(BOARD_NAME W5500_EVB_PICO)
-#set(BOARD_NAME W55RP20_EVB_PICO)
-#set(BOARD_NAME W5100S_EVB_PICO2)
-#set(BOARD_NAME W5500_EVB_PICO2)
 
 # Initialize the SDK
 pico_sdk_init()
@@ -33,7 +39,7 @@ endif()
 
 # pass defines and CMake variables to ioLibrary_Driver
 if(${BOARD_NAME} STREQUAL WIZnet_Ethernet_HAT)
-    #set(PICO_PLATFORM rp2350) #If you are using WIZnet_ethernet_HAT with Pico2, uncomment it.
+    #set(PICO_PLATFORM rp2350) 
     set(WIZNET_CHIP W5100S)
     target_compile_definitions(${PROJECT_NAME} INTERFACE _WIZCHIP_=W5100S)
     target_compile_definitions(${PROJECT_NAME} INTERFACE DEVICE_BOARD_NAME=WIZnet_Ethernet_HAT)
@@ -51,12 +57,10 @@ elseif(${BOARD_NAME} STREQUAL W55RP20_EVB_PICO)
     target_compile_definitions(${PROJECT_NAME} INTERFACE DEVICE_BOARD_NAME=W55RP20_EVB_PICO)
  
 elseif(${BOARD_NAME} STREQUAL W5100S_EVB_PICO2)
-    set(PICO_PLATFORM rp2350)
     set(WIZNET_CHIP W5100S)
     target_compile_definitions(${PROJECT_NAME} INTERFACE _WIZCHIP_=W5100S)
     target_compile_definitions(${PROJECT_NAME} INTERFACE DEVICE_BOARD_NAME=W5100S_EVB_PICO2)
 elseif(${BOARD_NAME} STREQUAL W5500_EVB_PICO2)
-    set(PICO_PLATFORM rp2350)
     set(WIZNET_CHIP W5500)
     target_compile_definitions(${PROJECT_NAME} INTERFACE _WIZCHIP_=W5500)
     target_compile_definitions(${PROJECT_NAME} INTERFACE DEVICE_BOARD_NAME=W5500_EVB_PICO2)
@@ -149,3 +153,6 @@ add_compile_options(
 #mkdir build
 #cmake -S . -B build -DPICO_PLATFORM=rp2350 -DPICO_BOARD=pico2
 #cmake --build build
+
+## OR from VS Code
+#Press [F7]

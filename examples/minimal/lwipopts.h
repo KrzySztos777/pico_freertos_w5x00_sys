@@ -7,13 +7,13 @@
 
 // Basic memory settings
 #define MEM_ALIGNMENT                  4
-#define MEM_SIZE           /*GIGAFAST*/(32*1024)//8192
+#define MEM_SIZE                       8192
 
 // TCP configuration
 #define LWIP_TCP                       1
 #define TCP_MSS                        (1500 /*mtu*/ - 20 /*iphdr*/ - 20 /*tcphhr*/)
-#define TCP_SND_BUF        /*GIGAFAST*/(12 * TCP_MSS)//(2 * TCP_MSS)
-#define TCP_WND            /*GIGAFAST*/(12 * TCP_MSS)//(2 * TCP_MSS)
+#define TCP_SND_BUF                    (2 * TCP_MSS)
+#define TCP_WND                        (2 * TCP_MSS)
 
 // TCP/IP thread configuration
 #define LWIP_TCPIP_CORE_LOCKING        0
@@ -37,9 +37,8 @@
 #define ETH_PAD_SIZE                   0 // MUST BE ZERO
 
 // PBUF_POOL buffers (default values, you may change later)
-#define PBUF_POOL_SIZE     /*GIGAFAST*/64//16
-#define PBUF_POOL_BUFSIZE  /*GIGAFAST*/1536//512
-#define MEMP_NUM_TCP_SEG   /*GIGAFAST*/64//it is extra- if not set then sanity error
+#define PBUF_POOL_SIZE                 16
+#define PBUF_POOL_BUFSIZE              512
 
 // Other protocol options
 #define LWIP_NETCONN                   1
