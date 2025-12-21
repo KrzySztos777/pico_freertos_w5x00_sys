@@ -318,7 +318,7 @@ BaseType_t w5x00_event_wait(EventBits_t wanted_bits, TickType_t timeout_ticks){
         timeout_ticks
     );
 
-    // Sprawdzenie, czy wszystkie wymagane bity zostały ustawione
+    // checking if all desired bits are set
     if ((bits & wanted_bits) == wanted_bits)
         return pdPASS;
     else

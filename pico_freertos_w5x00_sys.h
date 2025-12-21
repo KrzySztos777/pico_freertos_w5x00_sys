@@ -32,15 +32,15 @@
 #define W5X00_DHCP_OFF                  0//human-readable argument for w5x00_start
 
 //wait for events macros
-#define W5X00_WAIT_DONE(TICKS)          w5x00_event_wait(W5X00_EVENT_DONE, TICKS);//Wait for error or ready
-#define W5X00_WAIT_READY(TICKS)         w5x00_event_wait(W5X00_EVENT_READY, TICKS);//Wait for successfull initialization (and ready)
-#define W5X00_WAIT_ERROR(TICKS)         w5x00_event_wait(W5X00_EVENT_ERROR, TICKS);//Wait for error- practically can't set to ready after this anymore
-#define W5X00_WAIT_LINK_UP(TICKS)       w5x00_event_wait(W5X00_EVENT_LINK_UP, TICKS);//Wait for link ^UP^
-#define W5X00_WAIT_LINK_DOWN(TICKS)     w5x00_event_wait(W5X00_EVENT_LINK_DOWN, TICKS);//Wait for link _DOWN_
-#define W5X00_WAIT_LINK_CHANGED(TICKS)  w5x00_event_wait(W5X00_EVENT_LINK_UP | W5X00_EVENT_LINK_DOWN, TICKS);//Wait for link ^UP^
+#define W5X00_WAIT_DONE(TICKS)          w5x00_event_wait(W5X00_EVENT_DONE, TICKS)//Wait for error or ready
+#define W5X00_WAIT_READY(TICKS)         w5x00_event_wait(W5X00_EVENT_READY, TICKS)//Wait for successfull initialization (and ready)
+#define W5X00_WAIT_ERROR(TICKS)         w5x00_event_wait(W5X00_EVENT_ERROR, TICKS)//Wait for error- practically can't set to ready after this anymore
+#define W5X00_WAIT_LINK_UP(TICKS)       w5x00_event_wait(W5X00_EVENT_LINK_UP, TICKS)//Wait for link ^UP^
+#define W5X00_WAIT_LINK_DOWN(TICKS)     w5x00_event_wait(W5X00_EVENT_LINK_DOWN, TICKS)//Wait for link _DOWN_
+#define W5X00_WAIT_LINK_CHANGED(TICKS)  w5x00_event_wait(W5X00_EVENT_LINK_UP | W5X00_EVENT_LINK_DOWN, TICKS)//Wait for link ^UP^
 
 //if you want to use IRQ- but on your own rules. Usefull only with W5X00_DONT_SET_IRQ_CB=1 option
-#define W5X00_SET_CB()                  wizchip_gpio_interrupt_initialize(0, w5x00_int_handler);//use it with option W5X00_DONT_SET_IRQ_CB=1. Then call W5X00_INT_CB(gpio,events) macro INSIDE your interupt
+#define W5X00_SET_CB()                  wizchip_gpio_interrupt_initialize(0, w5x00_int_handler)//use it with option W5X00_DONT_SET_IRQ_CB=1. Then call W5X00_INT_CB(gpio,events) macro INSIDE your interupt
 #define W5X00_INT_CB(gpio,events)       wizchip_gpio_interrupt_callback(gpio,events)//if you have your own interrupt you have to call it inside your handler. Call this macro INSIDE your int handler if you have set W5X00_DONT_SET_IRQ_CB=1
 
 //state shortcuts

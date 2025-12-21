@@ -92,7 +92,9 @@ void led_task()
 
 void test_task()
 {   
-    W5X00_WAIT_LINK_UP(portMAX_DELAY);
+    while(W5X00_WAIT_LINK_UP(pdMS_TO_TICKS(1000))==pdFAIL)
+        printf("Waiting for link up to start (cable connection)...\n");
+
     printf("Starting DNS resolve...\n");
 
     const char *host = "eltin.com.pl";
