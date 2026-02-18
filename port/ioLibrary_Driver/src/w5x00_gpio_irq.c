@@ -18,7 +18,7 @@
 #include "socket.h"
 #include "w5x00_gpio_irq.h"
 
-#include "pico_freertos_w5x00_sys.h"//w5x00_get_status()
+#include "pico_freertos_w5x00_sys.h"//PIN_IRQ
 
 /**
  * ----------------------------------------------------------------------------------------------------
@@ -51,21 +51,21 @@ void wizchip_gpio_interrupt_initialize(uint8_t socket, void (*callback)(void))
     //set callback
     callback_ptr = callback;
 
-    //prepare PIN_INT
-    gpio_init(PIN_INT);
-    gpio_set_dir(PIN_INT, GPIO_IN);
-    gpio_pull_up(PIN_INT);
+    //prepare PIN_IRQ
+    gpio_init(PIN_IRQ);
+    gpio_set_dir(PIN_IRQ, GPIO_IN);
+    gpio_pull_up(PIN_IRQ);
 
     #if !W5X00_DONT_ATTACH_IRQ
-    gpio_set_irq_enabled_with_callback(PIN_INT, GPIO_IRQ_EDGE_FALL, true, &wizchip_gpio_interrupt_callback);
+    gpio_set_irq_enabled_with_callback(PIN_IRQ, GPIO_IRQ_EDGE_FALL, true, &wizchip_gpio_interrupt_callback);
     #endif
 }
 
 void wizchip_gpio_interrupt_callback(uint gpio, uint32_t events)
 {
     #if W5X00_DONT_SET_IRQ_CB
-    //check if pin belongs to W5x00 PIN_INT. Otherwise it must belonds to it- then nothing to check
-    if(gpio==PIN_INT && w5x00_get_state()==W5X00_READY)
+    //check if pin belongs to W5x00 PIN_IRQ. Otherwise it must belonds to it- then nothing to check
+    if(gpio==PIN_IRQ && w5x00_get_state()==W5X00_READY)
     #endif
     {
         //rearm interrupt

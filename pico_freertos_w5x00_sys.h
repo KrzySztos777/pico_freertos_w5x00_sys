@@ -24,7 +24,7 @@
 #ifdef LWIP_DHCP
 #define w5x00_dhcp(cb)                w5x00_start(W5X00_DHCP_ON, &ip_addr_any, &ip_addr_any, &ip_addr_any, cb)
 #else
-#define w5x00_dhcp(cb)                YOU_HAVE_TO_ENABLE___^LWIP_DHCP^___IN_"LWIOPTS.H"_IF_YOU_WANT_USE_DHCP!
+#define w5x00_dhcp(cb)                #error Option LWIP_DHCP "LWIOPTS.H" is required if you want to use dhcp
 #endif
 
 //dhcp on/off for better clarity

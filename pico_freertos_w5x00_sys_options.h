@@ -18,6 +18,10 @@
 // #define W5X00_SPI_SPEED                 (40 * 1000 * 1000) //spi speed
 #define W5X00_MAX_ETH_FRAME             1536 // max incoming ethernet frame size
 
+//custom pinout options. DO NOT use them if you have evaluation board
+// #define W5X00_SPI_PORT                  //spi0 //spi0 or spi1
+// #define W5X00_PINOUT                    //18,19,16,17,20,21 //pins in order: SCK,MOSI,MISO,CS,RST,IRQ. It overrides BOARD_NAME from CMakeLists
+
 // //task options
 // #define W5X00_POLL_SLEEP()              vTaskDelay(1) //function between SPI polling. Setting vTaskDelay(1) is wise-golden-option. IMPORTANT: You can set to taskYIELD() but every task with lower priority will be starved
 // #define W5X00_DRAIN_SLEEP()             NULL//function between draining packets from W5x00. NULL is fastest (wise-golden-option). May be also set to taskYIELD() or vTaskDelay(1)

@@ -85,7 +85,8 @@ void wizchip_reset()
     gpio_put(PIN_RST, 1);
     W5X00_SLEEP_MS(100);
 
-    bi_decl(bi_1pin_with_name(PIN_RST, "W5x00 RESET"));
+    // make the RST pins available to picotool
+    // bi_decl(bi_1pin_with_name(PIN_RST, "W5x00 RESET"));
 }
 
 #ifndef USE_SPI_PIO
@@ -180,7 +181,7 @@ void wizchip_spi_initialize(void)
     gpio_set_function(PIN_MISO, GPIO_FUNC_SPI);
 
     // make the SPI pins available to picotool
-    bi_decl(bi_3pins_with_func(PIN_MISO, PIN_MOSI, PIN_SCK, GPIO_FUNC_SPI));
+    // bi_decl(bi_3pins_with_func(PIN_MISO, PIN_MOSI, PIN_SCK, GPIO_FUNC_SPI));
 
     // chip select is active-low, so we'll initialise it to a driven-high state
     gpio_init(PIN_CS);
@@ -188,7 +189,7 @@ void wizchip_spi_initialize(void)
     gpio_put(PIN_CS, 1);
 
     // make the SPI pins available to picotool
-    bi_decl(bi_1pin_with_name(PIN_CS, "W5x00 CHIP SELECT"));
+    // bi_decl(bi_1pin_with_name(PIN_CS, "W5x00 CHIP SELECT"));
 
 #if W5X00_USE_SPI_DMA
     dma_tx = dma_claim_unused_channel(true);
@@ -245,6 +246,8 @@ int wizchip_initialize(void)
     uint8_t memsize[2][4] = {{8, 0, 0, 0}, {8, 0, 0, 0}};
 #elif (_WIZCHIP_ == W5500)
     uint8_t memsize[2][8] = {{8, 0, 0, 0, 0, 0, 0, 0}, {8, 0, 0, 0, 0, 0, 0, 0}};
+#else
+    #error "Unhandled _WIZCHIP_ constant (wizchip uc name mut be W5100S or W5500)"
 #endif
 
     if (ctlwizchip(CW_INIT_WIZCHIP, (void *)memsize) == -1)

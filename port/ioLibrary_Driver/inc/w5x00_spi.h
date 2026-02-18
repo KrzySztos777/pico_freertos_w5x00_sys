@@ -15,30 +15,53 @@
  * ----------------------------------------------------------------------------------------------------
  */
 /* SPI */
-#if (DEVICE_BOARD_NAME == W55RP20_EVB_PICO)
+#ifdef W5X00_PINOUT
+    #define W5X00_PINOUT_VECTOR         ((const int[]){W5X00_PINOUT})
 
-#define USE_SPI_PIO
+    //check if exactly 6 pins has been passed as comma serparated
+    _Static_assert(
+        sizeof(W5X00_PINOUT_VECTOR)/sizeof(W5X00_PINOUT_VECTOR[0]) == 6,
+        "W5X00_PINOUT must contains 6 pins in order: SCK,MOSI,MISO,CS,RST,IRQ."
+    );
 
-#define PIN_SCK 21
-#define PIN_MOSI 23
-#define PIN_MISO 22
-#define PIN_CS 20
-#define PIN_RST 25
-#define PIN_IRQ 24
+    //lets set default spi port as "spi0" if not defined
+    #ifndef W5X00_SPI_PORT
+        #define W5X00_SPI_PORT spi0
+    #endif
+    #define SPI_PORT    W5X00_SPI_PORT
 
+    //assign pins to defines for better clarity
+    #define PIN_SCK     W5X00_PINOUT_VECTOR[0]
+    #define PIN_MOSI    W5X00_PINOUT_VECTOR[1]
+    #define PIN_MISO    W5X00_PINOUT_VECTOR[2]
+    #define PIN_CS      W5X00_PINOUT_VECTOR[3]
+    #define PIN_RST     W5X00_PINOUT_VECTOR[4]
+    #define PIN_IRQ     W5X00_PINOUT_VECTOR[5]
 #else
-/* SPI */
-#define SPI_PORT spi0
+    #if (DEVICE_BOARD_NAME == W55RP20_EVB_PICO)
 
-#define PIN_SCK 18
-#define PIN_MOSI 19
-#define PIN_MISO 16
-#define PIN_CS 17
-#define PIN_RST 20
-#define PIN_IRQ 21
+    #define USE_SPI_PIO
 
-/* Use SPI DMA */
-//#define USE_SPI_DMA // if you want to use SPI DMA, uncomment.
+    #define PIN_SCK 21
+    #define PIN_MOSI 23
+    #define PIN_MISO 22
+    #define PIN_CS 20
+    #define PIN_RST 25
+    #define PIN_IRQ 24
+
+    #else
+    /* SPI */
+    #define SPI_PORT spi0
+
+    #define PIN_SCK 18
+    #define PIN_MOSI 19
+    #define PIN_MISO 16
+    #define PIN_CS 17
+    #define PIN_RST 20
+    #define PIN_IRQ 21
+
+    #endif
+
 #endif
 /**
  * ----------------------------------------------------------------------------------------------------
