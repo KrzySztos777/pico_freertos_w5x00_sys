@@ -314,12 +314,12 @@ BaseType_t w5x00_event_wait(EventBits_t wanted_bits, TickType_t timeout_ticks){
         w5x00_event_group,
         wanted_bits,
         pdFALSE,        // don't clear flags
-        pdTRUE,         // wait for all bits
+        pdFALSE,        // wait for any bits
         timeout_ticks
     );
 
     // checking if all desired bits are set
-    if ((bits & wanted_bits) == wanted_bits)
+    if (bits & wanted_bits)
         return pdPASS;
     else
         return pdFAIL;
