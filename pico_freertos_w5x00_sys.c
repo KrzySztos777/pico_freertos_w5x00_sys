@@ -61,7 +61,7 @@ int dhcp = 0;//is dhcp need to be set?
 void (*init_cb)(struct netif *netif_arg)=NULL;
 
 /* pack for incoming frame */
-uint8_t pack[ETHERNET_MTU+50];//50 is margin for ethernet, VLAN, etc.
+uint8_t pack[W5X00_MAX_ETH_FRAME];
 
 /* state of initializing W5x00*/
 enum w5x00_state_enum w5x00_state=W5X00_NOT_STARTED;//it is threaten as atomic 

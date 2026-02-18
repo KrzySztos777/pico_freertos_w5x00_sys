@@ -16,6 +16,7 @@
 // #define W5X00_USE_SPI_DMA               0 //set DMA if SPI is used. Set1 to enable or 0 to disable (disabled is default)
 // #define W5X00_CHECK_LINK_TIMEOUT_MS     100 //if no traffic for this time in ms then check link status. if 0 then link always up
 // #define W5X00_SPI_SPEED                 (40 * 1000 * 1000) //spi speed
+#define W5X00_MAX_ETH_FRAME             1536 // max incoming ethernet frame size
 
 // //task options
 // #define W5X00_POLL_SLEEP()              vTaskDelay(1) //function between SPI polling. Setting vTaskDelay(1) is wise-golden-option. IMPORTANT: You can set to taskYIELD() but every task with lower priority will be starved
@@ -93,6 +94,13 @@
  */
 #ifndef W5X00_SPI_SPEED
 #define W5X00_SPI_SPEED (40 * 1000 * 1000)
+#endif
+
+/**
+ * @brief Maximum size of incoming ethernet frame.
+ */
+#ifndef W5X00_MAX_ETH_FRAME
+#define W5X00_MAX_ETH_FRAME 1536
 #endif
 
 /* ----------------------------------------------------------------------------------------------------

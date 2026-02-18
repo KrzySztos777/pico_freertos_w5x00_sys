@@ -146,7 +146,7 @@ err_t netif_initialize(struct netif *netif)
 {
     netif->linkoutput = netif_output;
     netif->output = etharp_output;
-    netif->mtu = ETHERNET_MTU;
+    netif->mtu = W5X00_MAX_ETH_FRAME;
     netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_ETHERNET | NETIF_FLAG_IGMP | NETIF_FLAG_MLD6;
     SMEMCPY(netif->hwaddr, mac, sizeof(netif->hwaddr));
     netif->hwaddr_len = sizeof(netif->hwaddr);
