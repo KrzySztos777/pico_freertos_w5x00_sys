@@ -383,8 +383,10 @@ void w5x00_set_mac(const uint8_t setmac[6]){
         memcpy(mac,setmac,6);
 
     //set to W5500
-    setSHAR(mac);
-    ctlwizchip(CW_RESET_PHY, 0);
+    if(W5X00_IS_READY()){
+        setSHAR(mac);
+        ctlwizchip(CW_RESET_PHY, 0);
+    }
     
     //copy to netif
     memcpy(g_netif.hwaddr, mac, 6);
