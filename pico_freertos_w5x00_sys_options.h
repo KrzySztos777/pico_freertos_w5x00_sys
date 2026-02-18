@@ -13,13 +13,13 @@
 // #define W5X00_PRINTF                    NULL //for debugging- may be set to e.g. printf if you want to see logs
 // #define W5X00_INIT_DELAY_MS             0 //delay in ms at the beginning of the task (e.g. 1500). Just. First logs may not appear if set to 0
 // #define W5X00_INTERRUPT                 0 //if enabled then SPI is not polled but it waits for GPIO interrupt //LWIPER FAILS WITH THIS OPTION
-// #define W5X00_USE_SPI_DMA               0 //set DMA if SPI is used. Set1 to enable or 0 to disable (disabled is default)
+// #define W5X00_USE_SPI_DMA               1 //set DMA if SPI is used. Set1 to enable or 0 to disable (disabled is default)
 // #define W5X00_CHECK_LINK_TIMEOUT_MS     100 //if no traffic for this time in ms then check link status. if 0 then link always up
 // #define W5X00_SPI_SPEED                 (40 * 1000 * 1000) //spi speed
-#define W5X00_MAX_ETH_FRAME             1536 // max incoming ethernet frame size
-#define W5X00_RTOS_MUTEX                1 //freertos' mutex  instead of critical_section_enter_blocking
+// #define W5X00_MAX_ETH_FRAME             1536 // max incoming ethernet frame size
+// #define W5X00_RTOS_MUTEX                1 //freertos' mutex  instead of critical_section_enter_blocking
 
-//custom pinout options. DO NOT use them if you have evaluation board
+//custom pinout options. DO NOT SET them if you have evaluation board
 // #define W5X00_SPI_PORT                  //spi0 //spi0 or spi1
 // #define W5X00_PINOUT                    //18,19,16,17,20,21 //pins in order: SCK,MOSI,MISO,CS,RST,IRQ. It overrides BOARD_NAME from CMakeLists
 
@@ -79,7 +79,7 @@
  * - @c 0 – DMA disabled
  */
 #ifndef W5X00_USE_SPI_DMA
-#define W5X00_USE_SPI_DMA 0
+#define W5X00_USE_SPI_DMA 1
 #endif
 
 /**
