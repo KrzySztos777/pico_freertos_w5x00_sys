@@ -257,27 +257,29 @@ static void w5x00_task()
         //make tcpip_input while buffer is empty
         while (pack_len > 0)
         {
-            pack_len = recv_lwip(0, (uint8_t *)pack, pack_len);
+            // pack_len = recv_lwip(0, (uint8_t *)pack, pack_len);
+            pack_len = recv_lwip(0, (uint8_t *)pack, sizeof(pack));
 
             if (pack_len)
             {
                 p = pbuf_alloc(PBUF_RAW, pack_len, PBUF_POOL);
-                pbuf_take(p, pack, pack_len);
+
+                if (pack_len && p != NULL)
+                {
+                    pbuf_take(p, pack, pack_len);
+                    
+                    LINK_STATS_INC(link.recv);
+
+                    // if (g_netif.input(p, &g_netif) != ERR_OK)
+                    if (tcpip_input(p, &g_netif) != ERR_OK)
+                    {
+                        pbuf_free(p);
+                    }
+                }
             }
             else
             {
                 W5X00_PRINTF(" No packet received\n");
-            }
-
-            if (pack_len && p != NULL)
-            {
-                LINK_STATS_INC(link.recv);
-
-                // if (g_netif.input(p, &g_netif) != ERR_OK)
-                if (tcpip_input(p, &g_netif) != ERR_OK)
-                {
-                    pbuf_free(p);
-                }
             }
 
             //if too much packets you may want to give a breath
