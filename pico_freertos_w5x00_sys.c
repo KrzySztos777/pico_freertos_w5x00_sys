@@ -91,7 +91,13 @@ void w5x00_start(int _dhcp, const ip4_addr_t *_ip, const ip4_addr_t *_nm, const 
     w5x00_event_group = xEventGroupCreate();
 
     //create task
-    xTaskCreate(w5x00_task, W5X00_THREAD_NAME, W5X00_THREAD_STACKSIZE, NULL, W5X00_THREAD_PRIO, &w5x00TaskHandle);
+    xTaskCreate(w5x00_task, 
+        W5X00_THREAD_NAME, 
+        ((configMINIMAL_STACK_SIZE)>W5X00_THREAD_STACKSIZE)?(configMINIMAL_STACK_SIZE):W5X00_THREAD_STACKSIZE, 
+        NULL, 
+        W5X00_THREAD_PRIO, 
+        &w5x00TaskHandle
+    );
 
     //w5x00 has been started
     w5x00_state=W5X00_STARTING_IN_PROGRESS;
