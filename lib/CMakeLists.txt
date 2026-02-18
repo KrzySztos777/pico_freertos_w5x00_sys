@@ -58,41 +58,41 @@ target_link_libraries(W5500_FILES PRIVATE
         )
 endif()
 
-# Loopback
-add_library(LOOPBACK_FILES STATIC)
+# # Loopback
+# add_library(LOOPBACK_FILES STATIC)
 
-target_sources(LOOPBACK_FILES PUBLIC
-        ${WIZNET_DIR}/Application/loopback/loopback.c
-        )
+# target_sources(LOOPBACK_FILES PUBLIC
+#         ${WIZNET_DIR}/Application/loopback/loopback.c
+#         )
 
-target_include_directories(LOOPBACK_FILES PUBLIC
-        ${WIZNET_DIR}/Ethernet
-        ${WIZNET_DIR}/Application/loopback
-        )
+# target_include_directories(LOOPBACK_FILES PUBLIC
+#         ${WIZNET_DIR}/Ethernet
+#         ${WIZNET_DIR}/Application/loopback
+#         )
 
-# DHCP
-add_library(DHCP_FILES STATIC)
+# # DHCP
+# add_library(DHCP_FILES STATIC)
 
-target_sources(DHCP_FILES PUBLIC
-        ${WIZNET_DIR}/Internet/DHCP/dhcp.c
-        )
+# target_sources(DHCP_FILES PUBLIC
+#         ${WIZNET_DIR}/Internet/DHCP/dhcp.c
+#         )
 
-target_include_directories(DHCP_FILES PUBLIC
-        ${WIZNET_DIR}/Ethernet
-        ${WIZNET_DIR}/Internet/DHCP
-        )
+# target_include_directories(DHCP_FILES PUBLIC
+#         ${WIZNET_DIR}/Ethernet
+#         ${WIZNET_DIR}/Internet/DHCP
+#         )
 
-# DNS
-add_library(DNS_FILES STATIC)
+# # DNS
+# add_library(DNS_FILES STATIC)
 
-target_sources(DNS_FILES PUBLIC
-        ${WIZNET_DIR}/Internet/DNS/dns.c
-        )
+# target_sources(DNS_FILES PUBLIC
+#         ${WIZNET_DIR}/Internet/DNS/dns.c
+#         )
 
-target_include_directories(DNS_FILES PUBLIC
-        ${WIZNET_DIR}/Ethernet
-        ${WIZNET_DIR}/Internet/DNS
-        )
+# target_include_directories(DNS_FILES PUBLIC
+#         ${WIZNET_DIR}/Ethernet
+#         ${WIZNET_DIR}/Internet/DNS
+#         )
 
 # # FTP Client
 # add_library(FTPCLIENT_FILES STATIC)
@@ -118,52 +118,52 @@ target_include_directories(DNS_FILES PUBLIC
 #         ${WIZNET_DIR}/Internet/FTPServer
 #         )
 
-# HTTP Server
-add_library(HTTPSERVER_FILES STATIC)
+# # HTTP Server
+# add_library(HTTPSERVER_FILES STATIC)
 
-target_sources(HTTPSERVER_FILES PUBLIC
-        ${WIZNET_DIR}/Internet/httpServer/httpParser.c
-        ${WIZNET_DIR}/Internet/httpServer/httpServer.c
-        ${WIZNET_DIR}/Internet/httpServer/httpUtil.c
-        )
+# target_sources(HTTPSERVER_FILES PUBLIC
+#         ${WIZNET_DIR}/Internet/httpServer/httpParser.c
+#         ${WIZNET_DIR}/Internet/httpServer/httpServer.c
+#         ${WIZNET_DIR}/Internet/httpServer/httpUtil.c
+#         )
 
-target_include_directories(HTTPSERVER_FILES PUBLIC
-        ${WIZNET_DIR}/Ethernet
-        ${WIZNET_DIR}/Internet/httpServer
-        )
+# target_include_directories(HTTPSERVER_FILES PUBLIC
+#         ${WIZNET_DIR}/Ethernet
+#         ${WIZNET_DIR}/Internet/httpServer
+#         )
 
-# MQTT
-add_library(MQTT_FILES STATIC)
+# # MQTT
+# add_library(MQTT_FILES STATIC)
 
-target_sources(MQTT_FILES PUBLIC
-        ${WIZNET_DIR}/Internet/MQTT/mqtt_interface.c
-        ${WIZNET_DIR}/Internet/MQTT/MQTTClient.c
-        ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTConnectClient.c
-        ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTConnectServer.c
-        ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTDeserializePublish.c
-        ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTFormat.c
-        ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTPacket.c
-        ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTSerializePublish.c
-        ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTSubscribeClient.c
-        ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTSubscribeServer.c
-        ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTUnsubscribeClient.c
-        ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTUnsubscribeServer.c
-        )
+# target_sources(MQTT_FILES PUBLIC
+#         ${WIZNET_DIR}/Internet/MQTT/mqtt_interface.c
+#         ${WIZNET_DIR}/Internet/MQTT/MQTTClient.c
+#         ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTConnectClient.c
+#         ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTConnectServer.c
+#         ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTDeserializePublish.c
+#         ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTFormat.c
+#         ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTPacket.c
+#         ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTSerializePublish.c
+#         ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTSubscribeClient.c
+#         ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTSubscribeServer.c
+#         ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTUnsubscribeClient.c
+#         ${WIZNET_DIR}/Internet/MQTT/MQTTPacket/src/MQTTUnsubscribeServer.c
+#         )
 
-target_include_directories(MQTT_FILES PUBLIC
-        ${WIZNET_DIR}/Ethernet
-        ${WIZNET_DIR}/Internet/MQTT
-        ${WIZNET_DIR}/Internet/MQTTPacket/src
-        ) 
+# target_include_directories(MQTT_FILES PUBLIC
+#         ${WIZNET_DIR}/Ethernet
+#         ${WIZNET_DIR}/Internet/MQTT
+#         ${WIZNET_DIR}/Internet/MQTTPacket/src
+#         ) 
 
-# SNTP
-add_library(SNTP_FILES STATIC)
+# # SNTP
+# add_library(SNTP_FILES STATIC)
 
-target_sources(SNTP_FILES PUBLIC
-        ${WIZNET_DIR}/Internet/SNTP/sntp.c
-        )
+# target_sources(SNTP_FILES PUBLIC
+#         ${WIZNET_DIR}/Internet/SNTP/sntp.c
+#         )
 
-target_include_directories(SNTP_FILES PUBLIC
-        ${WIZNET_DIR}/Ethernet
-        ${WIZNET_DIR}/Internet/SNTP
-        )
+# target_include_directories(SNTP_FILES PUBLIC
+#         ${WIZNET_DIR}/Ethernet
+#         ${WIZNET_DIR}/Internet/SNTP
+#         )
