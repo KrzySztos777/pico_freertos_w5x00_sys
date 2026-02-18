@@ -21,13 +21,21 @@
 #include "wiznet_spi_pio.h"
 #endif
 
-
+#include "pico_freertos_w5x00_sys.h"
+#if W5X00_RTOS_MUTEX 
+#include "semphr.h"
+#endif
 /**
  * ----------------------------------------------------------------------------------------------------
  * Variables
  * ----------------------------------------------------------------------------------------------------
  */
+
+#if W5X00_RTOS_MUTEX 
+static xSemaphoreHandle mutex;
+#else
 static critical_section_t g_wizchip_cri_sec;
+#endif
 
 #if W5X00_USE_SPI_DMA
 static uint dma_tx;
@@ -158,12 +166,20 @@ static void wizchip_write_burst(uint8_t *pBuf, uint16_t len)
 
 static void wizchip_critical_section_lock(void)
 {
+    #if W5X00_RTOS_MUTEX 
+    xSemaphoreTake(mutex, portMAX_DELAY);
+    #else
     critical_section_enter_blocking(&g_wizchip_cri_sec);
+    #endif
 }
 
 static void wizchip_critical_section_unlock(void)
 {
+    #if W5X00_RTOS_MUTEX 
+    xSemaphoreGive(mutex);
+    #else
     critical_section_exit(&g_wizchip_cri_sec);
+    #endif
 }
 
 void wizchip_spi_initialize(void)
@@ -213,7 +229,12 @@ void wizchip_spi_initialize(void)
 
 void wizchip_cris_initialize(void)
 {
+    #if W5X00_RTOS_MUTEX 
+    mutex = xSemaphoreCreateMutex();
+    #else
     critical_section_init(&g_wizchip_cri_sec);
+    #endif
+
     reg_wizchip_cris_cbfunc(wizchip_critical_section_lock, wizchip_critical_section_unlock);
 }
 

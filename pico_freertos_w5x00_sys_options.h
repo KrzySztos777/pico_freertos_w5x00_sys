@@ -17,6 +17,7 @@
 // #define W5X00_CHECK_LINK_TIMEOUT_MS     100 //if no traffic for this time in ms then check link status. if 0 then link always up
 // #define W5X00_SPI_SPEED                 (40 * 1000 * 1000) //spi speed
 #define W5X00_MAX_ETH_FRAME             1536 // max incoming ethernet frame size
+#define W5X00_RTOS_MUTEX                1 //freertos' mutex  instead of critical_section_enter_blocking
 
 //custom pinout options. DO NOT use them if you have evaluation board
 // #define W5X00_SPI_PORT                  //spi0 //spi0 or spi1
@@ -105,6 +106,13 @@
  */
 #ifndef W5X00_MAX_ETH_FRAME
 #define W5X00_MAX_ETH_FRAME 1536
+#endif
+
+/**
+ * @brief Using RTOS mutex instead of blocking whole CPU during communication with chip
+ */
+#ifndef W5X00_RTOS_MUTEX 
+#define W5X00_RTOS_MUTEX 1
 #endif
 
 /* ----------------------------------------------------------------------------------------------------
