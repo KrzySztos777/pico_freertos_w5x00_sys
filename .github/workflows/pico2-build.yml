@@ -1,0 +1,61 @@
+name: Pico 2 Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build examples (Pico SDK 2.2.0)
+    runs-on: ubuntu-24.04
+    env:
+      PICO_SDK_PATH: ${{ github.workspace }}/pico-sdk
+      FREERTOS_KERNEL_PATH: ${{ github.workspace }}/FreeRTOS-Kernel
+
+    steps:
+      - name: Install build tools and Arm GNU Toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes cmake ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-dev
+          arm-none-eabi-gcc --version
+
+      - name: Check out project and ioLibrary_Driver
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Check out Pico SDK 2.2.0
+        uses: actions/checkout@v4
+        with:
+          repository: raspberrypi/pico-sdk
+          ref: 2.2.0
+          path: pico-sdk
+          submodules: recursive
+
+      - name: Check out FreeRTOS Kernel
+        uses: actions/checkout@v4
+        with:
+          repository: FreeRTOS/FreeRTOS-Kernel
+          ref: 8be86d4a24fd4091f8f4192018423ab590f408db
+          path: FreeRTOS-Kernel
+          submodules: recursive
+
+      - name: Configure for Pico 2
+        run: >-
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DPICO_BOARD=pico2
+          -DPICO_PLATFORM=rp2350
+          -DPICO_SDK_PATH="$PICO_SDK_PATH"
+          -DFREERTOS_KERNEL_PATH="$FREERTOS_KERNEL_PATH"
+
+      - name: Build all examples
+        run: cmake --build build --parallel
+
+      - name: Upload Pico 2 UF2 files
+        uses: actions/upload-artifact@v4
+        with:
+          name: pico2-firmware
+          path: build/**/*.uf2
+          if-no-files-found: error

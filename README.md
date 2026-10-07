@@ -1,5 +1,9 @@
 # PREAMBLE
 
+[![Pico 2 Build](https://github.com/KrzySztos777/pico_freertos_w5x00_sys/actions/workflows/pico2-build.yml/badge.svg)](https://github.com/KrzySztos777/pico_freertos_w5x00_sys/actions/workflows/pico2-build.yml)
+
+GitHub Actions builds all examples for Pico 2 with Pico SDK 2.2.0 and the Arm GNU Toolchain. Successful builds publish the generated UF2 files as a workflow artifact.
+
 This library provides a port of the W5x00 family (W5500 and W5100S) for Raspberry Pi Pico / Pico 2, enabling operation with **LwIP in NO_SYS = 0 mode on FreeRTOS**. It is a fork of <a href="https://github.com/WIZnet-ioNIC/WIZnet-PICO-LWIP-C">WIZnet-PICO-LWIP-C</a>. The operation and usage of the examples are identical. The code and README were kept as close to the original as possible. Bug reports, reviews, and suggestions are always welcome.
 
 # Getting Started with LwIP Examples
